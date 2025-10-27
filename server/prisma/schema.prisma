@@ -1,0 +1,110 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  age       Int
+  gender    String   @default("other") // male, female, other
+  bio       String?  @db.Text
+
+  // Profile
+  profilePhoto String?
+
+  // Location for distance filtering
+  latitude  Float?
+  longitude Float?
+
+  // Preferences
+  interestedIn      String  @default("everyone") // male, female, everyone
+  preferenceMinAge  Int     @default(18)
+  preferenceMaxAge  Int     @default(100)
+  preferenceDistance Float  @default(50) // in kilometers
+
+  // Online status
+  isOnline  Boolean  @default(false)
+  lastSeen  DateTime @default(now())
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  sentMessages     Message[] @relation("SentMessages")
+  receivedMessages Message[] @relation("ReceivedMessages")
+
+  // Matches - users this user has matched with
+  matchesInitiated Match[] @relation("MatchInitiator")
+  matchesReceived  Match[] @relation("MatchReceiver")
+
+  // Swipe actions
+  likes    Swipe[] @relation("UserLikes")
+  dislikes Swipe[] @relation("UserDislikes")
+
+  @@index([latitude, longitude])
+  @@index([email])
+}
+
+model Swipe {
+  id        String   @id @default(uuid())
+  userId    String
+  targetId  String
+  action    String   // "like" or "dislike"
+  createdAt DateTime @default(now())
+
+  user   User @relation("UserLikes", fields: [userId], references: [id], onDelete: Cascade)
+  target User @relation("UserDislikes", fields: [targetId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, targetId])
+  @@index([userId])
+  @@index([targetId])
+}
+
+model Match {
+  id        String   @id @default(uuid())
+  user1Id   String
+  user2Id   String
+  createdAt DateTime @default(now())
+
+  user1 User @relation("MatchInitiator", fields: [user1Id], references: [id], onDelete: Cascade)
+  user2 User @relation("MatchReceiver", fields: [user2Id], references: [id], onDelete: Cascade)
+
+  messages Message[]
+
+  @@unique([user1Id, user2Id])
+  @@index([user1Id])
+  @@index([user2Id])
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  content   String   @db.Text
+  senderId  String
+  receiverId String
+  matchId   String?
+
+  read      Boolean  @default(false)
+  readAt    DateTime?
+
+  createdAt DateTime @default(now())
+
+  sender   User   @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User   @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+  match    Match? @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([matchId])
+  @@index([createdAt])
+}

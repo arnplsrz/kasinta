@@ -1,0 +1,179 @@
+import { Server, Socket } from "socket.io";
+import jwt from "jsonwebtoken";
+import prisma from "../config/database";
+
+interface JwtPayload {
+  userId: string;
+}
+
+interface AuthenticatedSocket extends Socket {
+  userId?: string;
+}
+
+const initializeSocket = (io: Server): Map<string, string> => {
+  // Store user socket mappings
+  const userSockets = new Map<string, string>();
+
+  io.on("connection", (socket: AuthenticatedSocket) => {
+    console.log("New client connected:", socket.id);
+
+    // Authenticate socket connection
+    socket.on("authenticate", async (token: string) => {
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
+        socket.userId = decoded.userId;
+        userSockets.set(decoded.userId, socket.id);
+
+        // Update user online status
+        await prisma.user.update({
+          where: { id: decoded.userId },
+          data: {
+            isOnline: true,
+            lastSeen: new Date(),
+          },
+        });
+
+        socket.emit("authenticated", { userId: decoded.userId });
+        console.log("User authenticated:", decoded.userId);
+      } catch (error) {
+        console.error("Socket authentication error:", error);
+        socket.emit("authError", { message: "Authentication failed" });
+      }
+    });
+
+    // Handle sending messages
+    socket.on(
+      "sendMessage",
+      async (data: { receiverId: string; content: string }) => {
+        try {
+          const { receiverId, content } = data;
+
+          if (!socket.userId) {
+            socket.emit("error", { message: "Not authenticated" });
+            return;
+          }
+
+          // Verify users are matched
+          const match = await prisma.match.findFirst({
+            where: {
+              OR: [
+                { user1Id: socket.userId, user2Id: receiverId },
+                { user1Id: receiverId, user2Id: socket.userId },
+              ],
+            },
+          });
+
+          if (!match) {
+            socket.emit("error", {
+              message: "Not matched with this user",
+            });
+            return;
+          }
+
+          // Create message
+          const message = await prisma.message.create({
+            data: {
+              senderId: socket.userId,
+              receiverId: receiverId,
+              content: content.trim(),
+              matchId: match.id,
+            },
+            include: {
+              sender: {
+                select: {
+                  id: true,
+                  name: true,
+                  profilePhoto: true,
+                },
+              },
+              receiver: {
+                select: {
+                  id: true,
+                  name: true,
+                  profilePhoto: true,
+                },
+              },
+            },
+          });
+
+          // Send to receiver if online
+          const receiverSocketId = userSockets.get(receiverId);
+          if (receiverSocketId) {
+            io.to(receiverSocketId).emit("newMessage", message);
+          }
+
+          // Confirm to sender
+          socket.emit("messageSent", message);
+        } catch (error) {
+          console.error("Send message error:", error);
+          socket.emit("error", { message: "Failed to send message" });
+        }
+      }
+    );
+
+    // Handle typing indicator
+    socket.on(
+      "typing",
+      (data: { receiverId: string; isTyping: boolean }) => {
+        const { receiverId, isTyping } = data;
+        const receiverSocketId = userSockets.get(receiverId);
+
+        if (receiverSocketId) {
+          io.to(receiverSocketId).emit("userTyping", {
+            userId: socket.userId,
+            isTyping,
+          });
+        }
+      }
+    );
+
+    // Handle message read receipts
+    socket.on("messageRead", async (data: { messageId: string }) => {
+      try {
+        const { messageId } = data;
+
+        const message = await prisma.message.update({
+          where: { id: messageId },
+          data: {
+            read: true,
+            readAt: new Date(),
+          },
+        });
+
+        if (message) {
+          const senderSocketId = userSockets.get(message.senderId);
+          if (senderSocketId) {
+            io.to(senderSocketId).emit("messageReadReceipt", {
+              messageId,
+              readAt: message.readAt,
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Message read error:", error);
+      }
+    });
+
+    // Handle disconnection
+    socket.on("disconnect", async () => {
+      console.log("Client disconnected:", socket.id);
+
+      if (socket.userId) {
+        userSockets.delete(socket.userId);
+
+        // Update user offline status
+        await prisma.user.update({
+          where: { id: socket.userId },
+          data: {
+            isOnline: false,
+            lastSeen: new Date(),
+          },
+        });
+      }
+    });
+  });
+
+  return userSockets;
+};
+
+export default initializeSocket;
