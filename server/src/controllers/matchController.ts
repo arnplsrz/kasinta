@@ -40,16 +40,18 @@ export const getMatches = async (req: Request, res: Response): Promise<void> => 
       orderBy: { createdAt: "desc" },
     });
 
-    // Format matches to show the other user and last message
+    // Format matches to include both users and last message
     const formattedMatches = matches.map((match) => {
-      const otherUser = match.user1Id === req.userId! ? match.user2 : match.user1;
       const lastMessage = match.messages[0] || null;
 
       return {
-        matchId: match.id,
-        user: otherUser,
+        id: match.id,
+        user1Id: match.user1Id,
+        user2Id: match.user2Id,
+        user1: match.user1,
+        user2: match.user2,
         lastMessage,
-        matchedAt: match.createdAt,
+        createdAt: match.createdAt,
       };
     });
 
@@ -57,17 +59,14 @@ export const getMatches = async (req: Request, res: Response): Promise<void> => 
     formattedMatches.sort((a, b) => {
       const aDate = a.lastMessage
         ? new Date(a.lastMessage.createdAt).getTime()
-        : new Date(a.matchedAt).getTime();
+        : new Date(a.createdAt).getTime();
       const bDate = b.lastMessage
         ? new Date(b.lastMessage.createdAt).getTime()
-        : new Date(b.matchedAt).getTime();
+        : new Date(b.createdAt).getTime();
       return bDate - aDate;
     });
 
-    res.json({
-      matches: formattedMatches,
-      count: formattedMatches.length,
-    });
+    res.json(formattedMatches);
   } catch (error) {
     console.error("Get matches error:", error);
     res.status(500).json({ message: "Server error" });

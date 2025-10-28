@@ -182,7 +182,7 @@ export const getCurrentUser = async (req: Request, res: Response): Promise<void>
       return;
     }
 
-    res.json({ user });
+    res.json(user);
   } catch (error) {
     console.error("Get current user error:", error);
     res.status(500).json({ message: "Server error" });

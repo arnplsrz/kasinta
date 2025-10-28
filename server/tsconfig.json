@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "module": "commonjs",
+    "module": "nodenext",
     "lib": ["ES2020"],
     "outDir": "./dist",
     "rootDir": "./",
@@ -10,18 +10,12 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "moduleResolution": "node",
+    "moduleResolution": "nodenext",
     "allowSyntheticDefaultImports": true,
     "types": ["node"],
     "typeRoots": ["./node_modules/@types"],
     "sourceMap": true
   },
-  "include": [
-    "src/**/*",
-    "server.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist"
-  ]
+  "include": ["src/**/*", "server.ts"],
+  "exclude": ["node_modules", "dist"]
 }

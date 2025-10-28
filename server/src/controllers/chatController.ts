@@ -70,10 +70,7 @@ export const getMessages = async (req: Request, res: Response): Promise<void> =>
       },
     });
 
-    res.json({
-      messages: messages.reverse(),
-      count: messages.length,
-    });
+    res.json(messages.reverse());
   } catch (error) {
     console.error("Get messages error:", error);
     res.status(500).json({ message: "Server error" });
@@ -141,10 +138,7 @@ export const sendMessage = async (req: Request, res: Response): Promise<void> =>
       io.to(targetSocketId).emit("newMessage", message);
     }
 
-    res.status(201).json({
-      message: "Message sent",
-      data: message,
-    });
+    res.status(201).json(message);
   } catch (error) {
     console.error("Send message error:", error);
     res.status(500).json({ message: "Server error" });

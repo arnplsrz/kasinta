@@ -24,7 +24,10 @@ function calculateDistance(
 }
 
 // Get potential matches
-export const getPotentialMatches = async (req: Request, res: Response): Promise<void> => {
+export const getPotentialMatches = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     const currentUser = await prisma.user.findUnique({
       where: { id: req.userId! },
@@ -48,7 +51,9 @@ export const getPotentialMatches = async (req: Request, res: Response): Promise<
       ...currentUser.matchesInitiated.map((match) => match.user2Id),
       ...currentUser.matchesReceived.map((match) => match.user1Id),
     ];
-    const excludedIds = [...new Set([...swipedUserIds, ...matchedUserIds, currentUser.id])];
+    const excludedIds = [
+      ...new Set([...swipedUserIds, ...matchedUserIds, currentUser.id]),
+    ];
 
     // Build query
     const whereClause: Prisma.UserWhereInput = {
@@ -106,10 +111,7 @@ export const getPotentialMatches = async (req: Request, res: Response): Promise<
       });
     }
 
-    res.json({
-      users: potentialMatches,
-      count: potentialMatches.length,
-    });
+    res.json(potentialMatches);
   } catch (error) {
     console.error("Get potential matches error:", error);
     res.status(500).json({ message: "Server error" });
@@ -119,14 +121,15 @@ export const getPotentialMatches = async (req: Request, res: Response): Promise<
 // Handle swipe action
 export const swipe = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { targetUserId, action } = req.body;
+    const { targetId, targetUserId, action } = req.body;
+    const targetUser = targetId || targetUserId;
 
     if (!["like", "dislike"].includes(action)) {
       res.status(400).json({ message: "Invalid action" });
       return;
     }
 
-    if (!targetUserId) {
+    if (!targetUser) {
       res.status(400).json({ message: "Target user ID is required" });
       return;
     }
@@ -135,11 +138,11 @@ export const swipe = async (req: Request, res: Response): Promise<void> => {
       where: { id: req.userId! },
     });
 
-    const targetUser = await prisma.user.findUnique({
-      where: { id: targetUserId },
+    const targetUserData = await prisma.user.findUnique({
+      where: { id: targetUser },
     });
 
-    if (!currentUser || !targetUser) {
+    if (!currentUser || !targetUserData) {
       res.status(404).json({ message: "User not found" });
       return;
     }
@@ -149,7 +152,7 @@ export const swipe = async (req: Request, res: Response): Promise<void> => {
       where: {
         userId_targetId: {
           userId: req.userId!,
-          targetId: targetUserId,
+          targetId: targetUser,
         },
       },
     });
@@ -163,7 +166,7 @@ export const swipe = async (req: Request, res: Response): Promise<void> => {
     await prisma.swipe.create({
       data: {
         userId: req.userId!,
-        targetId: targetUserId,
+        targetId: targetUser,
         action,
       },
     });
@@ -175,7 +178,7 @@ export const swipe = async (req: Request, res: Response): Promise<void> => {
       // Check if target user has also liked current user
       const reciprocalLike = await prisma.swipe.findFirst({
         where: {
-          userId: targetUserId,
+          userId: targetUser,
           targetId: req.userId!,
           action: "like",
         },
@@ -189,7 +192,7 @@ export const swipe = async (req: Request, res: Response): Promise<void> => {
         const match = await prisma.match.create({
           data: {
             user1Id: req.userId!,
-            user2Id: targetUserId,
+            user2Id: targetUser,
           },
         });
 
@@ -198,7 +201,7 @@ export const swipe = async (req: Request, res: Response): Promise<void> => {
         // Emit socket event for real-time notification
         const io = req.app.get("io");
         const userSockets = req.app.get("userSockets") as Map<string, string>;
-        const targetSocketId = userSockets.get(targetUserId);
+        const targetSocketId = userSockets.get(targetUser);
 
         if (targetSocketId) {
           io.to(targetSocketId).emit("newMatch", {
@@ -218,14 +221,20 @@ export const swipe = async (req: Request, res: Response): Promise<void> => {
     res.json({
       message: action === "like" ? "User liked" : "User passed",
       isMatch,
-      matchedUser: isMatch
+      match: isMatch
         ? {
-            id: targetUser.id,
-            name: targetUser.name,
-            age: targetUser.age,
-            gender: targetUser.gender,
-            bio: targetUser.bio,
-            profilePhoto: targetUser.profilePhoto,
+            id: matchData?.id,
+            user1Id: matchData?.user1Id,
+            user2Id: matchData?.user2Id,
+            createdAt: matchData?.createdAt,
+            matchedUser: {
+              id: targetUserData.id,
+              name: targetUserData.name,
+              age: targetUserData.age,
+              gender: targetUserData.gender,
+              bio: targetUserData.bio,
+              profilePhoto: targetUserData.profilePhoto,
+            },
           }
         : null,
     });
