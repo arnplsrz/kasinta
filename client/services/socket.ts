@@ -1,14 +1,17 @@
-import { io } from "socket.io-client";
+import { io, Socket } from "socket.io-client";
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || "http://localhost:5000";
+const SOCKET_URL = process.env.VITE_SOCKET_URL || "http://localhost:5000";
 
 class SocketService {
+  private socket: Socket | null;
+  private listeners: Map<string, any[]>;
+
   constructor() {
     this.socket = null;
     this.listeners = new Map();
   }
 
-  connect(token) {
+  connect(token: string) {
     if (this.socket?.connected) {
       return;
     }
@@ -27,12 +30,12 @@ class SocketService {
       console.log("Socket disconnected");
     });
 
-    this.socket.on("error", (error) => {
+    this.socket.on("error", (error: any) => {
       console.error("Socket error:", error);
     });
   }
 
-  authenticate(token) {
+  authenticate(token: string) {
     if (this.socket && token) {
       this.socket.emit("authenticate", token);
     }
@@ -47,72 +50,74 @@ class SocketService {
   }
 
   // Message events
-  sendMessage(receiverId, content) {
+  sendMessage(receiverId: string, content: string) {
     if (this.socket) {
       this.socket.emit("sendMessage", { receiverId, content });
     }
   }
 
-  onNewMessage(callback) {
+  onNewMessage(callback: any) {
     this.on("newMessage", callback);
   }
 
-  onMessageSent(callback) {
+  onMessageSent(callback: any) {
     this.on("messageSent", callback);
   }
 
   // Match events
-  onNewMatch(callback) {
+  onNewMatch(callback: any) {
     this.on("newMatch", callback);
   }
 
-  onUnmatch(callback) {
+  onUnmatch(callback: any) {
     this.on("unmatch", callback);
   }
 
   // Typing events
-  sendTyping(receiverId, isTyping) {
+  sendTyping(receiverId: string, isTyping: boolean) {
     if (this.socket) {
       this.socket.emit("typing", { receiverId, isTyping });
     }
   }
 
-  onUserTyping(callback) {
+  onUserTyping(callback: any) {
     this.on("userTyping", callback);
   }
 
   // Read receipts
-  markMessageAsRead(messageId) {
+  markMessageAsRead(messageId: string) {
     if (this.socket) {
       this.socket.emit("messageRead", { messageId });
     }
   }
 
-  onMessageRead(callback) {
+  onMessageRead(callback: any) {
     this.on("messageReadReceipt", callback);
   }
 
   // Generic event handling
-  on(event, callback) {
+  on(event: string, callback: any) {
     if (this.socket) {
       this.socket.on(event, callback);
 
       if (!this.listeners.has(event)) {
         this.listeners.set(event, []);
       }
-      this.listeners.get(event).push(callback);
+      this.listeners.get(event)?.push(callback);
     }
   }
 
-  off(event, callback) {
+  off(event: string, callback: any) {
     if (this.socket) {
       this.socket.off(event, callback);
 
       if (this.listeners.has(event)) {
         const callbacks = this.listeners.get(event);
-        const index = callbacks.indexOf(callback);
-        if (index > -1) {
-          callbacks.splice(index, 1);
+        if (callbacks) {
+          const index = callbacks.indexOf(callback);
+          if (index > -1) {
+            callbacks.splice(index, 1);
+          }
         }
       }
     }
