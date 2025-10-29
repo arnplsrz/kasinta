@@ -1,5 +1,10 @@
 # Dependencies
 node_modules
+.pnpm-store
+
+# Build output
+.next
+out
 dist
 
 # Environment variables and secrets
@@ -17,10 +22,9 @@ pnpm-debug.log*
 # OS files
 .DS_Store
 Thumbs.db
-
-# User uploads (Fly.io will use volumes)
-uploads/*
-!uploads/.gitkeep
+*.swp
+*.swo
+*~
 
 # Version control
 .git
@@ -28,30 +32,30 @@ uploads/*
 .gitattributes
 
 # Documentation
+README.md
 *.md
 
 # IDE settings
 .vscode
 .idea
 *.swp
-*.swo
-*~
 
-# Docker files (no need to copy into image)
+# Testing
+__tests__
+*.test.ts
+*.test.tsx
+*.test.js
+*.test.jsx
+coverage
+.jest
+
+# Docker files
 Dockerfile
 .dockerignore
-docker-compose.yml
 
 # Fly.io
 fly.toml
 .fly
 
-# Test files
-*.test.ts
-*.test.js
-__tests__
-coverage
-*.http
-
-# Prisma
-prisma/migrations/.migration_lock
+# Next.js cache
+.next/cache

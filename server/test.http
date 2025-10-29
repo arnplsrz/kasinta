@@ -1,0 +1,194 @@
+### Variables
+@baseUrl = http://localhost:5001
+@token = kuya-will
+@userId = 123
+@matchUserId = 123
+
+###############################################
+# HEALTH CHECK
+###############################################
+
+### Health Check
+GET {{baseUrl}}/api/health
+
+###############################################
+# AUTHENTICATION
+###############################################
+
+### Register User 1
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "user1@example.com",
+  "password": "password123",
+  "name": "Alice Johnson",
+  "age": 28,
+  "gender": "female",
+  "bio": "Love hiking and coffee",
+  "latitude": 40.7128,
+  "longitude": -74.0060
+}
+
+### Register User 2
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "user2@example.com",
+  "password": "password123",
+  "name": "Bob Smith",
+  "age": 30,
+  "gender": "male",
+  "bio": "Software engineer and runner",
+  "latitude": 40.7580,
+  "longitude": -73.9855
+}
+
+### Login User 1
+# @name loginUser1
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "user1@example.com",
+  "password": "password123"
+}
+
+### Login User 2
+# @name loginUser2
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "user2@example.com",
+  "password": "password123"
+}
+
+### Get Current User (Me)
+GET {{baseUrl}}/api/auth/me
+Authorization: Bearer {{token}}
+
+### Logout
+POST {{baseUrl}}/api/auth/logout
+Authorization: Bearer {{token}}
+
+###############################################
+# USER MANAGEMENT
+###############################################
+
+### Get User Profile
+GET {{baseUrl}}/api/users/{{userId}}
+Authorization: Bearer {{token}}
+
+### Update User Profile
+PUT {{baseUrl}}/api/users/profile
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Alice Johnson",
+  "age": 29,
+  "bio": "Love hiking, coffee, and travel",
+  "gender": "female"
+}
+
+### Update User Preferences
+PUT {{baseUrl}}/api/users/preferences
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "minAge": 25,
+  "maxAge": 35,
+  "maxDistance": 50,
+  "interestedIn": "male",
+  "latitude": 40.7128,
+  "longitude": -74.0060
+}
+
+### Upload Profile Photo
+# Note: Replace with actual file path
+POST {{baseUrl}}/api/users/photo
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="photo"; filename="profile.jpg"
+Content-Type: image/jpeg
+
+< C:\path\to\your\profile.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### Delete Profile Photo
+DELETE {{baseUrl}}/api/users/photo
+Authorization: Bearer {{token}}
+
+###############################################
+# DISCOVERY
+###############################################
+
+### Get Potential Matches
+GET {{baseUrl}}/api/discovery
+Authorization: Bearer {{token}}
+
+### Swipe Right (Like)
+POST {{baseUrl}}/api/discovery/swipe
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "targetId": "{{userId}}",
+  "action": "like"
+}
+
+### Swipe Left (Dislike)
+POST {{baseUrl}}/api/discovery/swipe
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "targetId": "{{userId}}",
+  "action": "dislike"
+}
+
+### Undo Last Swipe
+DELETE {{baseUrl}}/api/discovery/undo
+Authorization: Bearer {{token}}
+
+###############################################
+# MATCHES
+###############################################
+
+### Get All Matches
+GET {{baseUrl}}/api/matches
+Authorization: Bearer {{token}}
+
+### Unmatch
+DELETE {{baseUrl}}/api/matches/{{matchUserId}}
+Authorization: Bearer {{token}}
+
+###############################################
+# CHAT
+###############################################
+
+### Get Chat Messages with Matched User
+GET {{baseUrl}}/api/chat/{{matchUserId}}
+Authorization: Bearer {{token}}
+
+### Send Message (HTTP Fallback)
+POST {{baseUrl}}/api/chat/{{matchUserId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "content": "Hey! How are you?"
+}
+
+### Mark Message as Read
+PUT {{baseUrl}}/api/chat/{{matchUserId}}/read
+Authorization: Bearer {{token}}
+
+### Get Unread Message Count
+GET {{baseUrl}}/api/chat/unread/count
+Authorization: Bearer {{token}}

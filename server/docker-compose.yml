@@ -1,0 +1,43 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: kasinta-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: kasinta_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - kasinta-network
+
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: kasinta-server
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 5001
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/kasinta_db
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-this}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
+      MAX_FILE_SIZE: 5242880
+    ports:
+      - "5001:5001"
+    depends_on:
+      - postgres
+    networks:
+      - kasinta-network
+    command: sh -c "npm run prisma:deploy && npm run start"
+
+volumes:
+  postgres_data:
+
+networks:
+  kasinta-network:
+    driver: bridge

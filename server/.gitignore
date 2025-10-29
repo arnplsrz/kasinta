@@ -35,8 +35,11 @@ pnpm-debug.log*
 *.sw?
 
 # Uploads
-uploads/*
-!uploads/.gitkeep
+uploads/
 
 # Prisma
 prisma/migrations/migration_lock.toml
+
+# Markdown
+!README.md
+*.toml
