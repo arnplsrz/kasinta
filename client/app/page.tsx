@@ -28,21 +28,17 @@ export default function HomePage() {
     return <Hero />;
   }
 
-  const handleMatchSelect = (matchId: string | null) => {
-    setSelectedMatchId(matchId);
-  };
-
-  const handleBackToDiscovery = () => {
-    setSelectedMatchId(null);
-  };
-
   return (
     <>
       <SidebarProvider>
         <AppSidebar
           selectedMatchId={selectedMatchId}
-          onMatchSelect={handleMatchSelect}
-          onBackToDiscovery={handleBackToDiscovery}
+          onMatchSelect={(matchId: string | null) =>
+            setSelectedMatchId(matchId)
+          }
+          onBackToDiscovery={() => {
+            setSelectedMatchId(null);
+          }}
         />
         <main className="w-full min-h-screen bg-background">
           {selectedMatchId ? (

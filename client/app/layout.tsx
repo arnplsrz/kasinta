@@ -4,14 +4,18 @@ import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { SocketProvider } from "@/contexts/SocketContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { Toaster } from "@/components/ui/sonner";
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "Kasinta - Dating App",
-  description: "Find your perfect match with Kasinta",
+  title: {
+    default: "Kasinta - Dating App",
+    template: "Kasinta - %s",
+  },
+  description: "Maghanap ng pagmamahal with Kasinta",
 };
 
 export default function RootLayout({
@@ -31,6 +35,7 @@ export default function RootLayout({
           <AuthProvider>
             <SocketProvider>{children}</SocketProvider>
           </AuthProvider>
+          <Toaster position="top-center" />
         </ThemeProvider>
       </body>
     </html>
