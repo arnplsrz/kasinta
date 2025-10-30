@@ -1,8 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
   SidebarHeader,
 } from "@/components/ui/sidebar";
@@ -13,7 +12,6 @@ import {
   Github,
   LogOut,
   User,
-  Heart,
   MessageCircle,
   ChevronRight,
 } from "lucide-react";
@@ -29,27 +27,44 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useSocket } from "@/contexts/SocketContext";
 import { matchAPI, API_BASE_URL } from "@/lib/api";
-import type { Match } from "@/lib/types";
+import type { Match, Message } from "@/lib/types";
+import socket from "@/services/socket";
 
 interface AppSidebarProps {
   selectedMatchId?: string | null;
   onMatchSelect: (matchId: string | null) => void;
   onBackToDiscovery: () => void;
+  refreshTrigger?: number;
 }
 
 export function AppSidebar({
   selectedMatchId,
   onMatchSelect,
   onBackToDiscovery,
+  refreshTrigger,
 }: AppSidebarProps) {
   const { user, logout } = useAuth();
   const { onNewMatch, onUnmatch, onNewMessage } = useSocket();
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
+  const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
+  const selectedMatchIdRef = useRef<string | null>(null);
+
+  // Keep ref in sync with prop
+  useEffect(() => {
+    selectedMatchIdRef.current = selectedMatchId || null;
+  }, [selectedMatchId]);
 
   useEffect(() => {
     loadMatches();
   }, []);
+
+  // Reload matches when refreshTrigger changes (e.g., after unmatch)
+  useEffect(() => {
+    if (refreshTrigger !== undefined && refreshTrigger > 0) {
+      loadMatches();
+    }
+  }, [refreshTrigger]);
 
   useEffect(() => {
     const cleanupNewMatch = onNewMatch((match) => {
@@ -58,9 +73,14 @@ export function AppSidebar({
 
     const cleanupUnmatch = onUnmatch((data) => {
       setMatches((prev) => prev.filter((m) => m.id !== data.matchId));
+
+      // If the unmatched chat was currently selected, clear selection
+      if (selectedMatchIdRef.current === data.matchId) {
+        onMatchSelect(null);
+      }
     });
 
-    const cleanupNewMessage = onNewMessage((message) => {
+    const updateLastMessage = (message: Message) => {
       // Update last message for the match
       setMatches((prev) =>
         prev.map((match) => {
@@ -70,28 +90,101 @@ export function AppSidebar({
             otherUserId === message.senderId ||
             otherUserId === message.receiverId
           ) {
+            // If this match is currently selected and the message is from the other user,
+            // mark it as read immediately
+            const isCurrentlySelected = match.id === selectedMatchIdRef.current;
+            const isIncoming = message.senderId === otherUserId;
+
             return {
               ...match,
-              lastMessage: message,
+              lastMessage: {
+                ...message,
+                read: isCurrentlySelected && isIncoming ? true : message.read,
+              },
             };
           }
           return match;
         })
       );
-    });
+    };
+
+    const cleanupNewMessage = onNewMessage(updateLastMessage);
+
+    // Also listen for messageSent events (for messages sent by this user)
+    const socketInstance = socket.getSocket();
+    if (socketInstance) {
+      socketInstance.on("messageSent", updateLastMessage);
+    }
 
     return () => {
       cleanupNewMatch();
       cleanupUnmatch();
       cleanupNewMessage();
+      if (socketInstance) {
+        socketInstance.off("messageSent", updateLastMessage);
+      }
     };
   }, [onNewMatch, onUnmatch, onNewMessage, user]);
+
+  // Listen for online status changes
+  useEffect(() => {
+    const handleUserStatusChange = (data: {
+      userId: string;
+      isOnline: boolean;
+    }) => {
+      setOnlineUsers((prev) => {
+        const newSet = new Set(prev);
+        if (data.isOnline) {
+          newSet.add(data.userId);
+        } else {
+          newSet.delete(data.userId);
+        }
+        return newSet;
+      });
+    };
+
+    socket.on("userStatusChange", handleUserStatusChange);
+
+    return () => {
+      socket.off("userStatusChange", handleUserStatusChange);
+    };
+  }, []);
+
+  // Mark messages as read when a match is selected
+  useEffect(() => {
+    if (!selectedMatchId) return;
+
+    setMatches((prev) =>
+      prev.map((match) => {
+        if (match.id === selectedMatchId && match.lastMessage) {
+          return {
+            ...match,
+            lastMessage: {
+              ...match.lastMessage,
+              read: true,
+            },
+          };
+        }
+        return match;
+      })
+    );
+  }, [selectedMatchId]);
 
   const loadMatches = async () => {
     setLoading(true);
     try {
       const data = await matchAPI.getMatches();
       setMatches(data);
+
+      // Initialize online users from match data
+      const initialOnlineUsers = new Set<string>();
+      data.forEach((match) => {
+        const otherUser = getOtherUser(match);
+        if (otherUser?.isOnline) {
+          initialOnlineUsers.add(otherUser.id);
+        }
+      });
+      setOnlineUsers(initialOnlineUsers);
     } catch (error) {
       console.error("Failed to load matches:", error);
     } finally {
@@ -166,45 +259,48 @@ export function AppSidebar({
 
         <ModeToggle />
       </SidebarHeader>
-      <SidebarContent>
-        <SidebarGroup className="p-0">
-          {/* Back to Discovery Button */}
-          {selectedMatchId && (
-            <button
-              onClick={onBackToDiscovery}
-              className="w-full p-4 flex justify-between items-center gap-3 hover:bg-background transition border-b-2 border-border bg-main/5"
-            >
-              <span className="font-base text-foreground">
-                Back to meeting new people
-              </span>
-              <ChevronRight />
-            </button>
-          )}
+      <SidebarContent className={loading || matches.length === 0 ? "items-center justify-center" : ""}>
+        <SidebarGroup className={loading || matches.length === 0 ? "flex-1 flex items-center justify-center" : "p-0"}>
+          {loading ? (
+            <div className="p-4 text-center">
+              <div className="animate-spin rounded-base h-8 w-8 border-2 border-border border-t-main mx-auto"></div>
+            </div>
+          ) : matches.length === 0 ? (
+            <div className="flex flex-col items-center justify-center text-center text-foreground/70 text-sm">
+              <MessageCircle
+                size={32}
+                className="mb-2 text-foreground/30"
+              />
+              <p>No matches yet</p>
+            </div>
+          ) : (
+            <>
+              {/* Back to Discovery Button */}
+              {selectedMatchId && (
+                <button
+                  onClick={onBackToDiscovery}
+                  className="w-full p-4 flex justify-between items-center gap-3 hover:bg-background transition border-b-2 border-border bg-main/5"
+                >
+                  <span className="font-base text-foreground">
+                    Back to meeting new people
+                  </span>
+                  <ChevronRight />
+                </button>
+              )}
 
-          {/* Chat Threads */}
-          <div className="pb-2">
-            {loading ? (
-              <div className="p-4 text-center">
-                <div className="animate-spin rounded-base h-8 w-8 border-2 border-border border-t-main mx-auto"></div>
-              </div>
-            ) : matches.length === 0 ? (
-              <div className="p-4 text-center text-foreground/70 text-sm">
-                <MessageCircle
-                  size={32}
-                  className="mx-auto mb-2 text-foreground/30"
-                />
-                <p>No matches yet</p>
-              </div>
-            ) : (
+              {/* Chat Threads */}
+              <div className="pb-2">{
               matches.map((match) => {
                 const otherUser = getOtherUser(match);
                 if (!otherUser) return null;
 
                 const isSelected = match.id === selectedMatchId;
                 const hasUnread =
+                  !isSelected &&
                   match.lastMessage &&
                   !match.lastMessage.read &&
                   match.lastMessage.senderId !== user?.id;
+                const isOnline = onlineUsers.has(otherUser.id);
 
                 return (
                   <button
@@ -230,7 +326,10 @@ export function AppSidebar({
                         </AvatarFallback>
                       </Avatar>
                       {hasUnread && (
-                        <div className="absolute -top-1 -right-1 w-3 h-3 bg-main rounded-full border-2 border-secondary-background"></div>
+                        <div className="absolute -top-1 right-0 w-3 h-3 bg-main rounded-full border-2 border-secondary-background"></div>
+                      )}
+                      {isOnline && (
+                        <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-background"></div>
                       )}
                     </div>
                     <div className="flex-1 text-left min-w-0">
@@ -258,9 +357,10 @@ export function AppSidebar({
                     </div>
                   </button>
                 );
-              })
-            )}
-          </div>
+              })}
+              </div>
+            </>
+          )}
         </SidebarGroup>
       </SidebarContent>
     </Sidebar>

@@ -188,31 +188,69 @@ export const swipe = async (req: Request, res: Response): Promise<void> => {
         // It's a match!
         isMatch = true;
 
-        // Create match record
+        // Create match record with full user data
         const match = await prisma.match.create({
           data: {
             user1Id: req.userId!,
             user2Id: targetUser,
           },
+          include: {
+            user1: {
+              select: {
+                id: true,
+                name: true,
+                age: true,
+                gender: true,
+                bio: true,
+                profilePhoto: true,
+                isOnline: true,
+                lastSeen: true,
+              },
+            },
+            user2: {
+              select: {
+                id: true,
+                name: true,
+                age: true,
+                gender: true,
+                bio: true,
+                profilePhoto: true,
+                isOnline: true,
+                lastSeen: true,
+              },
+            },
+          },
         });
 
         matchData = match;
 
-        // Emit socket event for real-time notification
+        // Emit socket event for real-time notification to BOTH users
         const io = req.app.get("io");
         const userSockets = req.app.get("userSockets") as Map<string, string>;
-        const targetSocketId = userSockets.get(targetUser);
 
+        // Emit to target user (User B)
+        const targetSocketId = userSockets.get(targetUser);
         if (targetSocketId) {
           io.to(targetSocketId).emit("newMatch", {
-            matchedUser: {
-              id: currentUser.id,
-              name: currentUser.name,
-              age: currentUser.age,
-              gender: currentUser.gender,
-              bio: currentUser.bio,
-              profilePhoto: currentUser.profilePhoto,
-            },
+            id: match.id,
+            user1Id: match.user1Id,
+            user2Id: match.user2Id,
+            user1: match.user1,
+            user2: match.user2,
+            createdAt: match.createdAt,
+          });
+        }
+
+        // Emit to current user (User A)
+        const currentSocketId = userSockets.get(req.userId!);
+        if (currentSocketId) {
+          io.to(currentSocketId).emit("newMatch", {
+            id: match.id,
+            user1Id: match.user1Id,
+            user2Id: match.user2Id,
+            user1: match.user1,
+            user2: match.user2,
+            createdAt: match.createdAt,
           });
         }
       }
@@ -221,20 +259,14 @@ export const swipe = async (req: Request, res: Response): Promise<void> => {
     res.json({
       message: action === "like" ? "User liked" : "User passed",
       isMatch,
-      match: isMatch
+      match: isMatch && matchData
         ? {
-            id: matchData?.id,
-            user1Id: matchData?.user1Id,
-            user2Id: matchData?.user2Id,
-            createdAt: matchData?.createdAt,
-            matchedUser: {
-              id: targetUserData.id,
-              name: targetUserData.name,
-              age: targetUserData.age,
-              gender: targetUserData.gender,
-              bio: targetUserData.bio,
-              profilePhoto: targetUserData.profilePhoto,
-            },
+            id: matchData.id,
+            user1Id: matchData.user1Id,
+            user2Id: matchData.user2Id,
+            user1: matchData.user1,
+            user2: matchData.user2,
+            createdAt: matchData.createdAt,
           }
         : null,
     });

@@ -1,6 +1,7 @@
+import { Match, Message } from "@/lib/types";
 import { io, Socket } from "socket.io-client";
 
-const SOCKET_URL = process.env.VITE_SOCKET_URL || "http://localhost:5000";
+const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL;
 
 class SocketService {
   private socket: Socket | null;
@@ -11,42 +12,41 @@ class SocketService {
     this.listeners = new Map();
   }
 
-  connect(token: string) {
-    if (this.socket?.connected) {
-      return;
+  // Set the socket instance from SocketContext
+  setSocket(socket: Socket | null) {
+    console.log("Setting socket instance:", socket ? "connected" : "null");
+    this.socket = socket;
+
+    if (socket) {
+      // Add debug listeners
+      socket.on("userStatusChange", (data) => {
+        console.log("Received userStatusChange:", data);
+      });
+
+      socket.on("userTyping", (data) => {
+        console.log("Received userTyping:", data);
+      });
     }
+  }
 
-    this.socket = io(SOCKET_URL, {
-      transports: ["websocket", "polling"],
-      withCredentials: true,
-    });
+  getSocket() {
+    return this.socket;
+  }
 
-    this.socket.on("connect", () => {
-      console.log("Socket connected");
-      this.authenticate(token);
-    });
-
-    this.socket.on("disconnect", () => {
-      console.log("Socket disconnected");
-    });
-
-    this.socket.on("error", (error: any) => {
-      console.error("Socket error:", error);
-    });
+  connect(token: string) {
+    // This method is now deprecated - socket is set via setSocket
+    console.warn("socket.connect() is deprecated - socket is managed by SocketContext");
   }
 
   authenticate(token: string) {
-    if (this.socket && token) {
-      this.socket.emit("authenticate", token);
-    }
+    // This method is now deprecated - authentication is handled by SocketContext
+    console.warn("socket.authenticate() is deprecated - authentication is handled by SocketContext");
   }
 
   disconnect() {
-    if (this.socket) {
-      this.socket.disconnect();
-      this.socket = null;
-      this.listeners.clear();
-    }
+    // Socket disconnection is now handled by SocketContext
+    console.log("Socket service disconnect called");
+    this.listeners.clear();
   }
 
   // Message events
@@ -56,32 +56,44 @@ class SocketService {
     }
   }
 
-  onNewMessage(callback: any) {
+  onNewMessage(callback: (message: Message) => void) {
     this.on("newMessage", callback);
   }
 
-  onMessageSent(callback: any) {
+  onMessageSent(callback: (message: Message) => void) {
     this.on("messageSent", callback);
   }
 
   // Match events
-  onNewMatch(callback: any) {
+  onNewMatch(callback: (match: Match) => void) {
     this.on("newMatch", callback);
   }
 
-  onUnmatch(callback: any) {
+  onUnmatch(callback: (data: { matchId: string }) => void) {
     this.on("unmatch", callback);
   }
 
   // Typing events
   sendTyping(receiverId: string, isTyping: boolean) {
     if (this.socket) {
+      console.log("Sending typing event:", { receiverId, isTyping });
       this.socket.emit("typing", { receiverId, isTyping });
+    } else {
+      console.warn("Cannot send typing - no socket instance");
     }
   }
 
-  onUserTyping(callback: any) {
+  onUserTyping(
+    callback: (data: { userId: string; isTyping: boolean }) => void
+  ) {
     this.on("userTyping", callback);
+  }
+
+  // Online status events
+  onUserStatusChange(
+    callback: (data: { userId: string; isOnline: boolean }) => void
+  ) {
+    this.on("userStatusChange", callback);
   }
 
   // Read receipts
@@ -91,7 +103,7 @@ class SocketService {
     }
   }
 
-  onMessageRead(callback: any) {
+  onMessageRead(callback: (data: { messageId: string; readAt: Date }) => void) {
     this.on("messageReadReceipt", callback);
   }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import React, {
+import {
   createContext,
   useContext,
   useEffect,
@@ -8,10 +8,11 @@ import React, {
   ReactNode,
 } from "react";
 import { io, Socket } from "socket.io-client";
-import { useAuth } from "./AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 import type { Message, Match } from "@/lib/types";
+import socketService from "@/services/socket";
 
-const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL;
 
 interface SocketContextType {
   socket: Socket | null;
@@ -37,6 +38,8 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
         setSocket(null);
         setConnected(false);
       }
+      socketService.setSocket(null);
+      socketService.disconnect();
       return;
     }
 
@@ -56,12 +59,12 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
     });
 
     newSocket.on("authenticated", () => {
-      console.log("Socket authenticated");
       setConnected(true);
+      // Set the socket instance in the socket service
+      socketService.setSocket(newSocket);
     });
 
     newSocket.on("disconnect", () => {
-      console.log("Socket disconnected");
       setConnected(false);
     });
 
@@ -74,6 +77,8 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
     // Cleanup on unmount
     return () => {
       newSocket.disconnect();
+      socketService.setSocket(null);
+      socketService.disconnect();
     };
   }, [user]);
 

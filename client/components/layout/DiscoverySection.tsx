@@ -9,7 +9,6 @@ import {
   Heart,
   SlidersHorizontal,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -19,10 +18,19 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import FiltersSection from "@/components/layout/FilterPopover";
+import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
+import Image from "next/image";
 
-export default function DiscoverySection() {
+interface DiscoverySectionProps {
+  onMatchSelect?: (matchId: string) => void;
+}
+
+export default function DiscoverySection({
+  onMatchSelect,
+}: DiscoverySectionProps = {}) {
+  const { user } = useAuth();
   const { onNewMatch } = useSocket();
-  const router = useRouter();
 
   const [potentialMatches, setPotentialMatches] = useState<PotentialMatch[]>(
     []
@@ -34,7 +42,7 @@ export default function DiscoverySection() {
 
   useEffect(() => {
     loadPotentialMatches();
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     const cleanup = onNewMatch((match) => {
@@ -50,6 +58,10 @@ export default function DiscoverySection() {
       setPotentialMatches(matches);
       setCurrentIndex(0);
     } catch (error) {
+      toast.error("Failed to update preferences", {
+        description:
+          error instanceof Error ? error.message : "An unknown error occurred",
+      });
       console.error("Failed to load matches:", error);
     } finally {
       setTimeout(() => setLoading(false), 250);
@@ -90,25 +102,32 @@ export default function DiscoverySection() {
 
   if (loading) {
     return (
-      <div className="space-y-4">
-        <h2 className="text-3xl font-heading text-foreground text-center">
-          Discover
-        </h2>
-        <div className="bg-secondary-background border-2 border-border rounded-base shadow-shadow overflow-hidden">
-          {/* Profile Photo Skeleton */}
-          <Skeleton className="h-[500px] w-full rounded-none border-0" />
-
-          {/* Bio Skeleton */}
-          <div className="p-6 border-t-2 border-border space-y-3">
-            <Skeleton className="h-5 w-20" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-3/4" />
+      <div className="h-full flex flex-col overflow-hidden">
+        <header className="relative mb-6 hidden md:flex items-center bg-secondary-background border-2 border-border rounded-base shadow-shadow p-4">
+          <Skeleton className="h-10 w-24" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+            <Skeleton className="h-9 w-32" />
           </div>
+        </header>
 
-          {/* Action Buttons Skeleton */}
-          <div className="p-6 flex justify-center gap-6 border-t-2 border-border">
-            <Skeleton className="w-16 h-16 rounded-base" />
-            <Skeleton className="w-16 h-16 rounded-base" />
+        <div className="flex-1 flex md:items-center md:justify-center overflow-hidden">
+          {/* Match Card Skeleton */}
+          <div className="w-full h-full bg-secondary-background border-2 border-border rounded-base shadow-shadow overflow-hidden flex-1 md:flex-initial flex flex-col">
+            {/* Profile Photo Skeleton */}
+            <Skeleton className="h-full w-full rounded-none border-0" />
+
+            {/* Bio Skeleton */}
+            <div className="p-6 border-t-2 border-border space-y-3">
+              <Skeleton className="h-5 w-20" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-3/4" />
+            </div>
+
+            {/* Action Buttons Skeleton */}
+            <div className="p-6 flex justify-center gap-6 border-t-2 border-border">
+              <Skeleton className="w-16 h-16 rounded-base" />
+              <Skeleton className="w-16 h-16 rounded-base" />
+            </div>
           </div>
         </div>
       </div>
@@ -116,11 +135,11 @@ export default function DiscoverySection() {
   }
 
   return (
-    <>
-      <header className="relative mb-6 flex items-center">
+    <div className="h-full flex flex-col overflow-hidden">
+      <header className="relative mb-6 hidden md:flex items-center bg-secondary-background border-2 border-border rounded-base shadow-shadow p-4">
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant={"noShadow"}>
+            <Button variant={"noShadow"} className="hidden md:flex">
               <SlidersHorizontal />
               <span>Filter</span>
             </Button>
@@ -136,92 +155,91 @@ export default function DiscoverySection() {
       </header>
 
       {hasMoreMatches ? (
-        <div className="bg-secondary-background border-2 border-border rounded-base shadow-shadow overflow-hidden">
-          {/* Profile Photo */}
-          <div className="relative h-[500px] bg-main/10">
-            {currentMatch.profilePhoto ? (
-              <img
-                src={`${API_BASE_URL}${currentMatch.profilePhoto}`}
-                alt={currentMatch.name}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <User size={80} className="text-foreground/30" />
-              </div>
-            )}
-
-            {/* Info overlay */}
-            <div className="absolute bottom-0 left-0 right-0 bg-overlay p-6 text-white">
-              <h3 className="text-3xl font-heading mb-1">
-                {currentMatch.name}, {currentMatch.age}
-              </h3>
-              {currentMatch.distance && (
-                <div className="flex items-center gap-1 text-sm">
-                  <MapPin size={16} />
-                  <span>{Math.round(currentMatch.distance)} km away</span>
+        <div className="w-full flex-1 flex md:items-center md:justify-center overflow-hidden">
+          {/* Match Card */}
+          <div className="w-full h-full bg-secondary-background border-2 border-border rounded-base shadow-shadow overflow-hidden flex-1 md:flex-initial flex flex-col">
+            {/* Profile Photo */}
+            <div className="relative h-full bg-main/10">
+              {currentMatch.profilePhoto ? (
+                <Image
+                  src={`${API_BASE_URL}${currentMatch.profilePhoto}`}
+                  alt={currentMatch.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <User size={80} className="text-foreground/30" />
                 </div>
               )}
+              {/* Info overlay */}
+              <div className="absolute bottom-0 left-0 right-0 bg-overlay p-6 text-white">
+                <h3 className="text-3xl font-heading mb-1">
+                  {currentMatch.name}, {currentMatch.age}
+                </h3>
+                {currentMatch.distance && (
+                  <div className="flex items-center gap-1 text-sm">
+                    <MapPin size={16} />
+                    <span>{Math.round(currentMatch.distance)} km away</span>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-
-          {/* Bio */}
-          {currentMatch.bio && (
-            <div className="p-6 border-t-2 border-border">
-              <h4 className="font-heading text-foreground mb-2">About</h4>
-              <p className="text-foreground/70">{currentMatch.bio}</p>
-            </div>
-          )}
-
-          {/* Action Buttons */}
-          <div className="p-6 flex justify-center gap-6 border-t-2 border-border">
-            <button
-              onClick={() => handleSwipe("dislike")}
-              disabled={swiping}
-              className="w-16 h-16 rounded-base bg-secondary-background border-2 border-border text-foreground hover:translate-x-boxShadowX hover:translate-y-boxShadowY hover:shadow-none shadow-shadow transition disabled:opacity-50 flex items-center justify-center"
-            >
-              <X size={32} />
-            </button>
-
-            {currentIndex > 0 && (
-              <button
-                onClick={handleUndo}
-                disabled={swiping}
-                className="w-14 h-14 rounded-base bg-secondary-background border-2 border-border text-foreground hover:translate-x-boxShadowX hover:translate-y-boxShadowY hover:shadow-none shadow-shadow transition disabled:opacity-50 flex items-center justify-center"
-              >
-                <RotateCcw size={24} />
-              </button>
+            {/* Bio */}
+            {currentMatch.bio && (
+              <div className="p-6 border-t-2 border-border">
+                <h4 className="font-heading text-foreground mb-2">About</h4>
+                <p className="text-foreground/70">{currentMatch.bio}</p>
+              </div>
             )}
-
-            <button
-              onClick={() => handleSwipe("like")}
-              disabled={swiping}
-              className="w-16 h-16 rounded-base bg-main border-2 border-border text-main-foreground hover:translate-x-boxShadowX hover:translate-y-boxShadowY hover:shadow-none shadow-shadow transition disabled:opacity-50 flex items-center justify-center"
-            >
-              <Heart size={32} />
-            </button>
-          </div>
-
-          {/* Progress */}
-          <div className="px-6 pb-4 text-center text-foreground/70 text-sm">
-            {currentIndex + 1} / {potentialMatches.length}
+            {/* Action Buttons */}
+            <div className="p-6 flex justify-center gap-6 border-t-2 border-border">
+              <button
+                onClick={() => handleSwipe("dislike")}
+                disabled={swiping}
+                className="w-16 h-16 rounded-base bg-secondary-background border-2 border-border text-foreground hover:translate-x-boxShadowX hover:translate-y-boxShadowY hover:shadow-none shadow-shadow transition disabled:opacity-50 flex items-center justify-center"
+              >
+                <X size={32} />
+              </button>
+              {currentIndex > 0 && (
+                <button
+                  onClick={handleUndo}
+                  disabled={swiping}
+                  className="w-14 h-14 rounded-base bg-secondary-background border-2 border-border text-foreground hover:translate-x-boxShadowX hover:translate-y-boxShadowY hover:shadow-none shadow-shadow transition disabled:opacity-50 flex items-center justify-center"
+                >
+                  <RotateCcw size={24} />
+                </button>
+              )}
+              <button
+                onClick={() => handleSwipe("like")}
+                disabled={swiping}
+                className="w-16 h-16 rounded-base bg-main border-2 border-border text-main-foreground hover:translate-x-boxShadowX hover:translate-y-boxShadowY hover:shadow-none shadow-shadow transition disabled:opacity-50 flex items-center justify-center"
+              >
+                <Heart size={32} />
+              </button>
+            </div>
+            {/* Progress */}
+            <div className="px-6 pb-4 text-center text-foreground/70 text-sm">
+              {currentIndex + 1} / {potentialMatches.length}
+            </div>
           </div>
         </div>
       ) : (
-        <div className="bg-secondary-background border-2 border-border rounded-base shadow-shadow p-12 text-center">
-          <Heart size={64} className="text-foreground/30 mx-auto mb-4" />
-          <h3 className="text-2xl font-heading text-foreground mb-4">
-            No more profiles
-          </h3>
-          <p className="text-foreground/70 mb-6">
-            Check back later for new potential matches
-          </p>
-          <button
-            onClick={loadPotentialMatches}
-            className="bg-main border-2 border-border rounded-base px-6 py-3 font-base text-main-foreground shadow-shadow hover:translate-x-boxShadowX hover:translate-y-boxShadowY hover:shadow-none transition"
-          >
-            Refresh
-          </button>
+        <div className="flex-1 flex md:items-center md:justify-center md:mb-10 overflow-hidden">
+          <div className="bg-secondary-background border-2 border-border rounded-base shadow-shadow p-12 text-center flex-1 md:flex-initial flex flex-col items-center justify-center md:w-[600px]">
+            <Heart size={64} className="text-foreground/30 mx-auto mb-4" />
+            <h3 className="text-2xl font-heading text-foreground mb-4">
+              No more profiles
+            </h3>
+            <p className="text-foreground/70 mb-6">
+              Check back later for new potential matches
+            </p>
+            <button
+              onClick={loadPotentialMatches}
+              className="bg-main border-2 border-border rounded-base px-6 py-3 font-base text-main-foreground shadow-shadow hover:translate-x-boxShadowX hover:translate-y-boxShadowY hover:shadow-none transition"
+            >
+              Refresh
+            </button>
+          </div>
         </div>
       )}
 
@@ -231,7 +249,7 @@ export default function DiscoverySection() {
           <div className="bg-secondary-background border-2 border-border rounded-base shadow-shadow p-8 max-w-md w-full text-center">
             <Heart size={64} className="text-main mx-auto animate-pulse mb-6" />
             <h3 className="text-3xl font-heading text-foreground mb-4">
-              It's a Match!
+              It&apos;s a Match!
             </h3>
             <p className="text-foreground/70 mb-8">
               You and your match liked each other!
@@ -244,7 +262,12 @@ export default function DiscoverySection() {
                 Keep Swiping
               </button>
               <button
-                onClick={() => router.push("/chat")}
+                onClick={() => {
+                  if (onMatchSelect && newMatch) {
+                    onMatchSelect(newMatch.id);
+                    setNewMatch(null);
+                  }
+                }}
                 className="flex-1 bg-main border-2 border-border rounded-base px-6 py-3 font-base text-main-foreground shadow-shadow hover:translate-x-boxShadowX hover:translate-y-boxShadowY hover:shadow-none transition"
               >
                 Send Message
@@ -253,6 +276,6 @@ export default function DiscoverySection() {
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }

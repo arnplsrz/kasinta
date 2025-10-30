@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Slider } from "../ui/slider";
+import { toast } from "sonner";
 
 export default function FiltersSection() {
   const { user, refreshUser } = useAuth();
@@ -43,8 +44,12 @@ export default function FiltersSection() {
         preferenceDistance: filters.distance,
       });
       await refreshUser();
+      toast.success("Preferences updated successfully");
     } catch (error) {
-      console.error("Failed to update preferences:", error);
+      toast.error("Failed to update preferences", {
+        description:
+          error instanceof Error ? error.message : "An unknown error occurred",
+      });
     } finally {
       setSaving(false);
     }

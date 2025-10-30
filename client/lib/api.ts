@@ -34,10 +34,10 @@ const createHeaders = (includeAuth = true): HeadersInit => {
 // Helper function to handle API responses
 const handleResponse = async <T>(response: Response): Promise<T> => {
   if (!response.ok) {
-    const error = await response
-      .json()
-      .catch(() => ({ error: "An error occurred" }));
-    throw new Error(error.error || "An error occurred");
+    const error = await response.json().catch(() => ({
+      error: `Server error: ${response.status} ${response.statusText}`,
+    }));
+    throw new Error(error.message || "An error occurred");
   }
   return response.json();
 };
