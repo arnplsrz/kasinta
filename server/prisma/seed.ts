@@ -50,7 +50,7 @@ async function main() {
         preferenceDistance: 40,
         latitude: 40.7589,
         longitude: -73.9851,
-        isOnline: true,
+        isOnline: false,
       },
     }),
     prisma.user.create({
@@ -84,7 +84,7 @@ async function main() {
         preferenceDistance: 45,
         latitude: 40.7484,
         longitude: -73.9857,
-        isOnline: true,
+        isOnline: false,
       },
     }),
     prisma.user.create({
@@ -99,7 +99,7 @@ async function main() {
         preferenceMinAge: 25,
         preferenceMaxAge: 34,
         preferenceDistance: 50,
-        latitude: 40.7580,
+        latitude: 40.758,
         longitude: -73.9855,
         isOnline: false,
       },
@@ -118,7 +118,7 @@ async function main() {
         preferenceDistance: 35,
         latitude: 40.7614,
         longitude: -73.9776,
-        isOnline: true,
+        isOnline: false,
       },
     }),
     prisma.user.create({
@@ -134,7 +134,7 @@ async function main() {
         preferenceMaxAge: 33,
         preferenceDistance: 55,
         latitude: 40.7489,
-        longitude: -73.9680,
+        longitude: -73.968,
         isOnline: false,
       },
     }),
@@ -152,7 +152,7 @@ async function main() {
         preferenceDistance: 40,
         latitude: 40.7282,
         longitude: -74.0776,
-        isOnline: true,
+        isOnline: false,
       },
     }),
     prisma.user.create({
@@ -186,7 +186,7 @@ async function main() {
         preferenceDistance: 45,
         latitude: 40.7411,
         longitude: -73.9897,
-        isOnline: true,
+        isOnline: false,
       },
     }),
   ]);
@@ -306,7 +306,8 @@ async function main() {
         senderId: users[1].id,
         receiverId: users[0].id,
         matchId: matches[0].id,
-        content: "Thanks John! I noticed you love hiking. What's your favorite trail?",
+        content:
+          "Thanks John! I noticed you love hiking. What's your favorite trail?",
         read: true,
         readAt: new Date(),
       },
@@ -328,7 +329,8 @@ async function main() {
         senderId: users[2].id,
         receiverId: users[1].id,
         matchId: matches[1].id,
-        content: "Hey! Fellow fitness enthusiast here. Do you work out regularly?",
+        content:
+          "Hey! Fellow fitness enthusiast here. Do you work out regularly?",
         read: true,
         readAt: new Date(),
       },
@@ -362,7 +364,8 @@ async function main() {
         senderId: users[5].id,
         receiverId: users[0].id,
         matchId: matches[3].id,
-        content: "Hi! I saw you're into photography. Do you have a favorite subject?",
+        content:
+          "Hi! I saw you're into photography. Do you have a favorite subject?",
         read: false,
       },
     }),

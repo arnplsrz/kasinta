@@ -33,6 +33,12 @@ const initializeSocket = (io: Server): Map<string, string> => {
           },
         });
 
+        // Broadcast online status to all connected users
+        io.emit("userStatusChange", {
+          userId: decoded.userId,
+          isOnline: true,
+        });
+
         socket.emit("authenticated", { userId: decoded.userId });
         console.log("User authenticated:", decoded.userId);
       } catch (error) {
@@ -159,15 +165,22 @@ const initializeSocket = (io: Server): Map<string, string> => {
       console.log("Client disconnected:", socket.id);
 
       if (socket.userId) {
-        userSockets.delete(socket.userId);
+        const userId = socket.userId;
+        userSockets.delete(userId);
 
         // Update user offline status
         await prisma.user.update({
-          where: { id: socket.userId },
+          where: { id: userId },
           data: {
             isOnline: false,
             lastSeen: new Date(),
           },
+        });
+
+        // Broadcast offline status to all connected users
+        io.emit("userStatusChange", {
+          userId: userId,
+          isOnline: false,
         });
       }
     });
