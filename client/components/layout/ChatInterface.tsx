@@ -45,6 +45,7 @@ export default function ChatInterface({
     sendMessage: socketSendMessage,
     onNewMessage,
     onUnmatch: onSocketUnmatch,
+    onUserStatusChange,
   } = useSocket();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -120,29 +121,27 @@ export default function ChatInterface({
       }
     };
 
-    const handleUserStatusChange = (data: {
-      userId: string;
-      isOnline: boolean;
-    }) => {
-      if (data.userId === otherUserId) {
-        setOtherUserOnline(data.isOnline);
-      }
-    };
-
+    // Listen for typing events using socket service
     const socketInstance = socket.getSocket();
     if (!socketInstance) {
-      console.log("No socket instance available for listeners");
+      console.log("No socket instance available for typing listener");
       return;
     }
 
     socketInstance.on("userTyping", handleUserTyping);
-    socketInstance.on("userStatusChange", handleUserStatusChange);
+
+    // Listen for online status changes using context helper
+    const cleanupStatusChange = onUserStatusChange((data) => {
+      if (data.userId === otherUserId) {
+        setOtherUserOnline(data.isOnline);
+      }
+    });
 
     return () => {
       socketInstance.off("userTyping", handleUserTyping);
-      socketInstance.off("userStatusChange", handleUserStatusChange);
+      cleanupStatusChange();
     };
-  }, [match, user]);
+  }, [match, user, onUserStatusChange]);
 
   useEffect(() => {
     scrollToBottom();

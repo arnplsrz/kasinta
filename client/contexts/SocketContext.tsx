@@ -21,6 +21,7 @@ interface SocketContextType {
   onNewMessage: (callback: (message: Message) => void) => () => void;
   onNewMatch: (callback: (match: Match) => void) => () => void;
   onUnmatch: (callback: (data: { matchId: string }) => void) => () => void;
+  onUserStatusChange: (callback: (data: { userId: string; isOnline: boolean }) => void) => () => void;
 }
 
 const SocketContext = createContext<SocketContextType | undefined>(undefined);
@@ -115,6 +116,15 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
     };
   };
 
+  const onUserStatusChange = (callback: (data: { userId: string; isOnline: boolean }) => void) => {
+    if (!socket) return () => {};
+
+    socket.on("userStatusChange", callback);
+    return () => {
+      socket.off("userStatusChange", callback);
+    };
+  };
+
   return (
     <SocketContext.Provider
       value={{
@@ -124,6 +134,7 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
         onNewMessage,
         onNewMatch,
         onUnmatch,
+        onUserStatusChange,
       }}
     >
       {children}

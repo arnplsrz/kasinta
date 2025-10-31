@@ -44,7 +44,7 @@ export function AppSidebar({
   refreshTrigger,
 }: AppSidebarProps) {
   const { user, logout } = useAuth();
-  const { onNewMatch, onUnmatch, onNewMessage } = useSocket();
+  const { onNewMatch, onUnmatch, onNewMessage, onUserStatusChange } = useSocket();
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
@@ -128,10 +128,7 @@ export function AppSidebar({
 
   // Listen for online status changes
   useEffect(() => {
-    const handleUserStatusChange = (data: {
-      userId: string;
-      isOnline: boolean;
-    }) => {
+    const cleanup = onUserStatusChange((data) => {
       setOnlineUsers((prev) => {
         const newSet = new Set(prev);
         if (data.isOnline) {
@@ -141,14 +138,10 @@ export function AppSidebar({
         }
         return newSet;
       });
-    };
+    });
 
-    socket.on("userStatusChange", handleUserStatusChange);
-
-    return () => {
-      socket.off("userStatusChange", handleUserStatusChange);
-    };
-  }, []);
+    return cleanup;
+  }, [onUserStatusChange]);
 
   // Mark messages as read when a match is selected
   useEffect(() => {
