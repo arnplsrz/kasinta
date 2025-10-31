@@ -307,9 +307,9 @@ export default function ChatInterface({
   }
 
   return (
-    <div className="relative h-full md:h-screen overflow-hidden">
+    <div className="relative h-full flex flex-col overflow-hidden">
       {/* Chat Header */}
-      <div className="absolute top-0 left-0 right-0 z-10 p-4 border-b-2 border-border bg-secondary-background flex items-center justify-between gap-3">
+      <div className="shrink-0 p-4 border-b-2 border-border bg-secondary-background flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="relative">
             <Avatar className="h-12 w-12">
@@ -425,7 +425,7 @@ export default function ChatInterface({
       {/* Messages */}
       <div
         ref={messagesContainerRef}
-        className="absolute top-[82px] bottom-[90px] left-0 right-0 p-4 overflow-y-auto flex flex-col-reverse"
+        className="flex-1 p-4 overflow-y-auto flex flex-col-reverse"
       >
         <div className="flex flex-col space-y-4">
           <div ref={messagesEndRef} />
@@ -465,7 +465,7 @@ export default function ChatInterface({
       {/* Message Input */}
       <form
         onSubmit={handleSendMessage}
-        className="absolute bottom-0 left-0 right-0 z-10 p-4 border-t-2 border-border bg-secondary-background"
+        className="shrink-0 p-4 border-t-2 border-border bg-secondary-background"
       >
         <div className="flex gap-2">
           <input

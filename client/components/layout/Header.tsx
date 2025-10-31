@@ -6,11 +6,7 @@ import { Heart, MessageCircle, User, Compass, LogOut } from "lucide-react";
 import { chatAPI } from "@/lib/api";
 import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
-import { Bricolage_Grotesque } from "next/font/google";
-
-const bricolageGrotesque = Bricolage_Grotesque({
-  subsets: ["latin"],
-});
+import { KasintaLogo } from "@/components/ui/kasinta-logo";
 
 export default function Header() {
   const { user, logout } = useAuth();
@@ -39,9 +35,9 @@ export default function Header() {
         {/* Logo */}
         <Link
           href="/"
-          className={`text-2xl font-heading text-main-foreground hover:translate-x-0.5 hover:translate-y-0.5 transition-transform ${bricolageGrotesque.className}`}
+          className="hover:translate-x-0.5 hover:translate-y-0.5 transition-transform"
         >
-          KASINTA
+          <KasintaLogo size="md" variant="inverted" />
         </Link>
 
         {/* Navigation - Desktop */}

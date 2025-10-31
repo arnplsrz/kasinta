@@ -1,10 +1,6 @@
 import Link from "next/link";
-import { Heart, Github, Twitter, Mail } from "lucide-react";
-import { Bricolage_Grotesque } from "next/font/google";
-
-const bricolageGrotesque = Bricolage_Grotesque({
-  subsets: ["latin"],
-});
+import { Github, Mail, Linkedin } from "lucide-react";
+import { KasintaLogo } from "@/components/ui/kasinta-logo";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -12,113 +8,36 @@ export default function Footer() {
   return (
     <footer className="bg-secondary-background">
       <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
-          {/* Brand Section */}
-          <div className="space-y-4">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+          {/* Brand Section - Larger */}
+          <div className="space-y-6">
             <Link
               href="/"
-              className={`inline-block text-2xl font-heading hover:translate-x-0.5 hover:translate-y-0.5 transition-transform ${bricolageGrotesque.className}`}
+              className="hover:translate-x-0.5 hover:translate-y-0.5 transition-transform inline-block"
             >
-              KASINTA
+              <KasintaLogo size="xl" />
             </Link>
-            <p className="font-base text-sm text-foreground">
-              Find your perfect match and build meaningful connections.
+            <p className="font-base text-base text-foreground max-w-md">
+              Find your perfect match and build meaningful connections. Join
+              thousands of people finding love on Kasinta.
             </p>
           </div>
 
-          {/* Product Links */}
-          <div>
-            <h3 className="mb-4 font-heading text-lg">Product</h3>
-            <ul className="space-y-2 font-base text-sm">
-              <li>
-                <Link
-                  href="/discover"
-                  className="hover:translate-x-0.5 inline-block transition-transform hover:underline"
-                >
-                  Discover
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/matches"
-                  className="hover:translate-x-0.5 inline-block transition-transform hover:underline"
-                >
-                  Matches
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/chat"
-                  className="hover:translate-x-0.5 inline-block transition-transform hover:underline"
-                >
-                  Messages
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/profile"
-                  className="hover:translate-x-0.5 inline-block transition-transform hover:underline"
-                >
-                  Profile
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Company Links */}
-          <div>
-            <h3 className="mb-4 font-heading text-lg">Company</h3>
-            <ul className="space-y-2 font-base text-sm">
-              <li>
-                <Link
-                  href="/about"
-                  className="hover:translate-x-0.5 inline-block transition-transform hover:underline"
-                >
-                  About
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/privacy"
-                  className="hover:translate-x-0.5 inline-block transition-transform hover:underline"
-                >
-                  Privacy Policy
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/terms"
-                  className="hover:translate-x-0.5 inline-block transition-transform hover:underline"
-                >
-                  Terms of Service
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/contact"
-                  className="hover:translate-x-0.5 inline-block transition-transform hover:underline"
-                >
-                  Contact
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Social Links */}
-          <div>
-            <h3 className="mb-4 font-heading text-lg">Connect</h3>
+          {/* Connect Section - Right Side */}
+          <div className="md:ml-auto">
+            <h3 className="mb-4 font-heading text-lg">Connect With Us</h3>
             <div className="flex gap-3">
               <a
-                href="https://twitter.com"
+                href="https://www.linkedin.com/in/arnplsrz/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex h-10 w-10 items-center justify-center rounded-base border-2 border-border bg-main shadow-shadow hover:translate-x-boxShadowX hover:translate-y-boxShadowY hover:shadow-none transition-all"
-                aria-label="Twitter"
+                aria-label="LinkedIn"
               >
-                <Twitter size={20} className="text-main-foreground" />
+                <Linkedin size={20} className="text-main-foreground" />
               </a>
               <a
-                href="https://github.com"
+                href="https://github.com/arnplsrz"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex h-10 w-10 items-center justify-center rounded-base border-2 border-border bg-main shadow-shadow hover:translate-x-boxShadowX hover:translate-y-boxShadowY hover:shadow-none transition-all"
@@ -127,7 +46,7 @@ export default function Footer() {
                 <Github size={20} className="text-main-foreground" />
               </a>
               <a
-                href="mailto:hello@kasinta.com"
+                href="mailto:ar.suarez.ph@gmail.com"
                 className="flex h-10 w-10 items-center justify-center rounded-base border-2 border-border bg-main shadow-shadow hover:translate-x-boxShadowX hover:translate-y-boxShadowY hover:shadow-none transition-all"
                 aria-label="Email"
               >
@@ -138,14 +57,18 @@ export default function Footer() {
         </div>
 
         {/* Bottom Section */}
-        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t-2 border-border pt-8 md:flex-row">
+        <div className="mt-12 flex flex-col items-center justify-between gap-4 pt-8 md:flex-row">
           <p className="font-base text-sm text-foreground">
             © {currentYear} Kasinta. All rights reserved.
           </p>
-          <p className="flex items-center gap-2 font-base text-sm text-foreground">
-            Made with{" "}
-            <Heart size={16} className="text-chart-2" fill="currentColor" /> for
-            meaningful connections
+          <p className="font-base text-sm text-foreground">
+            Made by{" "}
+            <Link
+              href="https://arnplsrz.com"
+              className="underline transform transition-transform hover:translate-x-0.5 hover:translate-y-0.5"
+            >
+              Aaron Paul Suarez
+            </Link>
           </p>
         </div>
       </div>

@@ -15,11 +15,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import FiltersSection from "@/components/layout/FilterPopover";
-import { Bricolage_Grotesque } from "next/font/google";
-
-const bricolageGrotesque = Bricolage_Grotesque({
-  subsets: ["latin"],
-});
+import { KasintaLogo } from "@/components/ui/kasinta-logo";
 
 export default function HomePage() {
   const { user, loading } = useAuth();
@@ -91,13 +87,9 @@ export default function HomePage() {
           }}
         >
           {/* Mobile Header */}
-          <header className="md:hidden shrink-0 bg-background border-b-2 border-border px-4 py-3 flex items-center justify-between">
+          <header className="xl:hidden shrink-0 bg-background border-b-2 border-border px-4 py-3 flex items-center justify-between">
             <SidebarTrigger />
-            <h1
-              className={`text-2xl font-heading text-foreground ${bricolageGrotesque.className}`}
-            >
-              KASINTA
-            </h1>
+            <KasintaLogo size="sm" />
             {!selectedMatchId && (
               <Popover>
                 <PopoverTrigger asChild>
@@ -124,7 +116,7 @@ export default function HomePage() {
               />
             </div>
           ) : (
-            <div className="flex-1 overflow-hidden p-4 md:p-8 flex flex-col">
+            <div className="flex-1 overflow-hidden p-4 xl:p-8 flex flex-col">
               <div className="max-w-7xl m-auto w-full h-full flex flex-col">
                 <DiscoverySection
                   onMatchSelect={(matchId: string) =>

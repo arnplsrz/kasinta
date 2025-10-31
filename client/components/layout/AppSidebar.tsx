@@ -44,7 +44,8 @@ export function AppSidebar({
   refreshTrigger,
 }: AppSidebarProps) {
   const { user, logout } = useAuth();
-  const { onNewMatch, onUnmatch, onNewMessage, onUserStatusChange } = useSocket();
+  const { onNewMatch, onUnmatch, onNewMessage, onUserStatusChange } =
+    useSocket();
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
@@ -215,7 +216,7 @@ export function AppSidebar({
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56">
             <DropdownMenuLabel>My Account</DropdownMenuLabel>
-            <DropdownMenuSeparator />
+            <DropdownMenuSeparator className="text-main-foreground" />
             <DropdownMenuGroup>
               <DropdownMenuItem>
                 <Link
@@ -227,7 +228,7 @@ export function AppSidebar({
                 </Link>
               </DropdownMenuItem>
             </DropdownMenuGroup>
-            <DropdownMenuSeparator />
+            <DropdownMenuSeparator className="text-main-foreground" />
             <DropdownMenuGroup>
               <DropdownMenuItem>
                 <a
@@ -252,18 +253,25 @@ export function AppSidebar({
 
         <ModeToggle />
       </SidebarHeader>
-      <SidebarContent className={loading || matches.length === 0 ? "items-center justify-center" : ""}>
-        <SidebarGroup className={loading || matches.length === 0 ? "flex-1 flex items-center justify-center" : "p-0"}>
+      <SidebarContent
+        className={
+          loading || matches.length === 0 ? "items-center justify-center" : ""
+        }
+      >
+        <SidebarGroup
+          className={
+            loading || matches.length === 0
+              ? "flex-1 flex items-center justify-center"
+              : "p-0"
+          }
+        >
           {loading ? (
             <div className="p-4 text-center">
               <div className="animate-spin rounded-base h-8 w-8 border-2 border-border border-t-main mx-auto"></div>
             </div>
           ) : matches.length === 0 ? (
             <div className="flex flex-col items-center justify-center text-center text-foreground/70 text-sm">
-              <MessageCircle
-                size={32}
-                className="mb-2 text-foreground/30"
-              />
+              <MessageCircle size={32} className="mb-2 text-foreground/30" />
               <p>No matches yet</p>
             </div>
           ) : (
@@ -282,75 +290,75 @@ export function AppSidebar({
               )}
 
               {/* Chat Threads */}
-              <div className="pb-2">{
-              matches.map((match) => {
-                const otherUser = getOtherUser(match);
-                if (!otherUser) return null;
+              <div className="pb-2">
+                {matches.map((match) => {
+                  const otherUser = getOtherUser(match);
+                  if (!otherUser) return null;
 
-                const isSelected = match.id === selectedMatchId;
-                const hasUnread =
-                  !isSelected &&
-                  match.lastMessage &&
-                  !match.lastMessage.read &&
-                  match.lastMessage.senderId !== user?.id;
-                const isOnline = onlineUsers.has(otherUser.id);
+                  const isSelected = match.id === selectedMatchId;
+                  const hasUnread =
+                    !isSelected &&
+                    match.lastMessage &&
+                    !match.lastMessage.read &&
+                    match.lastMessage.senderId !== user?.id;
+                  const isOnline = onlineUsers.has(otherUser.id);
 
-                return (
-                  <button
-                    key={match.id}
-                    onClick={() => onMatchSelect(match.id)}
-                    className={`w-full p-3 flex gap-3 hover:bg-background transition border-b-2 border-border ${
-                      isSelected ? "bg-main/10" : ""
-                    }`}
-                  >
-                    <div className="relative">
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage
-                          src={
-                            otherUser.profilePhoto
-                              ? `${API_BASE_URL}${otherUser.profilePhoto}`
-                              : ""
-                          }
-                          alt={otherUser.name}
-                          className="object-cover"
-                        />
-                        <AvatarFallback className="bg-main/20 text-foreground font-heading">
-                          {otherUser.name[0]}
-                        </AvatarFallback>
-                      </Avatar>
-                      {hasUnread && (
-                        <div className="absolute -top-1 right-0 w-3 h-3 bg-main rounded-full border-2 border-secondary-background"></div>
-                      )}
-                      {isOnline && (
-                        <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-background"></div>
-                      )}
-                    </div>
-                    <div className="flex-1 text-left min-w-0">
-                      <h4 className="font-base text-foreground truncate">
-                        {otherUser.name}
-                      </h4>
-                      {match.lastMessage ? (
-                        <p
-                          className={`text-sm truncate ${
-                            hasUnread
-                              ? "font-base text-foreground"
-                              : "text-foreground/60"
-                          }`}
-                        >
-                          {match.lastMessage.senderId === user?.id
-                            ? "You: "
-                            : ""}
-                          {match.lastMessage.content}
-                        </p>
-                      ) : (
-                        <p className="text-sm text-foreground/60">
-                          Start a conversation
-                        </p>
-                      )}
-                    </div>
-                  </button>
-                );
-              })}
+                  return (
+                    <button
+                      key={match.id}
+                      onClick={() => onMatchSelect(match.id)}
+                      className={`w-full p-3 flex gap-3 hover:bg-background transition border-b-2 border-border ${
+                        isSelected ? "bg-main/10" : ""
+                      }`}
+                    >
+                      <div className="relative">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage
+                            src={
+                              otherUser.profilePhoto
+                                ? `${API_BASE_URL}${otherUser.profilePhoto}`
+                                : ""
+                            }
+                            alt={otherUser.name}
+                            className="object-cover"
+                          />
+                          <AvatarFallback className="bg-main/20 text-foreground font-heading">
+                            {otherUser.name[0]}
+                          </AvatarFallback>
+                        </Avatar>
+                        {hasUnread && (
+                          <div className="absolute -top-1 right-0 w-3 h-3 bg-main rounded-full border-2 border-secondary-background"></div>
+                        )}
+                        {isOnline && (
+                          <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-background"></div>
+                        )}
+                      </div>
+                      <div className="flex-1 text-left min-w-0">
+                        <h4 className="font-base text-foreground truncate">
+                          {otherUser.name}
+                        </h4>
+                        {match.lastMessage ? (
+                          <p
+                            className={`text-sm truncate ${
+                              hasUnread
+                                ? "font-base text-foreground"
+                                : "text-foreground/60"
+                            }`}
+                          >
+                            {match.lastMessage.senderId === user?.id
+                              ? "You: "
+                              : ""}
+                            {match.lastMessage.content}
+                          </p>
+                        ) : (
+                          <p className="text-sm text-foreground/60">
+                            Start a conversation
+                          </p>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </>
           )}

@@ -37,7 +37,7 @@ export const usePushNotifications = () => {
     const registerServiceWorker = async () => {
       try {
         const reg = await navigator.serviceWorker.register("/sw.js");
-        console.log("Service Worker registered:", reg);
+        // console.log("Service Worker registered:", reg);
         setRegistration(reg);
 
         // Handle service worker updates
@@ -49,7 +49,7 @@ export const usePushNotifications = () => {
                 newWorker.state === "installed" &&
                 navigator.serviceWorker.controller
               ) {
-                console.log("New service worker available");
+                // console.log("New service worker available");
               }
             });
           }

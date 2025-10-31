@@ -14,17 +14,17 @@ class SocketService {
 
   // Set the socket instance from SocketContext
   setSocket(socket: Socket | null) {
-    console.log("Setting socket instance:", socket ? "connected" : "null");
+    // console.log("Setting socket instance:", socket ? "connected" : "null");
     this.socket = socket;
 
     if (socket) {
       // Add debug listeners
       socket.on("userStatusChange", (data) => {
-        console.log("Received userStatusChange:", data);
+        // console.log("Received userStatusChange:", data);
       });
 
       socket.on("userTyping", (data) => {
-        console.log("Received userTyping:", data);
+        // console.log("Received userTyping:", data);
       });
     }
   }
@@ -33,19 +33,9 @@ class SocketService {
     return this.socket;
   }
 
-  connect(token: string) {
-    // This method is now deprecated - socket is set via setSocket
-    console.warn("socket.connect() is deprecated - socket is managed by SocketContext");
-  }
-
-  authenticate(token: string) {
-    // This method is now deprecated - authentication is handled by SocketContext
-    console.warn("socket.authenticate() is deprecated - authentication is handled by SocketContext");
-  }
-
   disconnect() {
     // Socket disconnection is now handled by SocketContext
-    console.log("Socket service disconnect called");
+    // console.log("Socket service disconnect called");
     this.listeners.clear();
   }
 
@@ -76,7 +66,7 @@ class SocketService {
   // Typing events
   sendTyping(receiverId: string, isTyping: boolean) {
     if (this.socket) {
-      console.log("Sending typing event:", { receiverId, isTyping });
+      // console.log("Sending typing event:", { receiverId, isTyping });
       this.socket.emit("typing", { receiverId, isTyping });
     } else {
       console.warn("Cannot send typing - no socket instance");

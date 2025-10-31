@@ -3,11 +3,8 @@
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
-import { Bricolage_Grotesque } from "next/font/google";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { NextFont } from "next/dist/compiled/@next/font";
-import Image from "next/image";
 import {
   FieldGroup,
   Field,
@@ -20,10 +17,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Eye, EyeOff } from "lucide-react";
-
-const bricolageGrotesque: NextFont = Bricolage_Grotesque({
-  subsets: ["latin"],
-});
+import { KasintaLogo } from "@/components/ui/kasinta-logo";
 
 const loginSchema = z.object({
   email: z.email("Please enter a valid email address"),
@@ -63,21 +57,11 @@ export default function LoginPage() {
         <div className="flex justify-center gap-2 md:justify-start">
           <Link
             href="/"
-            className={`flex items-center gap-2 text-4xl font-heading hover:translate-x-1 hover:translate-y-1 transition-transform ${
-              bricolageGrotesque.className
-            } ${loading ? "pointer-events-none opacity-50" : ""}`}
+            className={`hover:translate-x-1 hover:translate-y-1 transition-transform ${loading ? "pointer-events-none opacity-50" : ""}`}
             aria-disabled={loading}
             tabIndex={loading ? -1 : undefined}
           >
-            <div className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md">
-              <Image
-                src="/favicon-32x32.png"
-                alt="Site logo"
-                width={32}
-                height={32}
-              ></Image>
-            </div>
-            KASINTA
+            <KasintaLogo size="xl" />
           </Link>
         </div>
         <div className="flex flex-1 items-center justify-center">

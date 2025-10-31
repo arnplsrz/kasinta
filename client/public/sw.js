@@ -76,8 +76,8 @@ self.addEventListener("push", (event) => {
 
     const options = {
       body,
-      icon: icon || "/icon-192x192.png",
-      badge: badge || "/icon-192x192.png",
+      icon: icon || "/logo.svg",
+      badge: badge || "/logo.svg",
       tag: tag || "kasinta-notification",
       data: notificationData,
       requireInteraction: false,

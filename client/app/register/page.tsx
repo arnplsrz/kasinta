@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
-import { Bricolage_Grotesque } from "next/font/google";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -14,24 +13,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { NextFont } from "next/dist/compiled/@next/font";
 import {
   Field,
   FieldDescription,
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field";
-import Image from "next/image";
 import { Spinner } from "@/components/ui/spinner";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import { Eye, EyeOff } from "lucide-react";
-
-const bricolageGrotesque: NextFont = Bricolage_Grotesque({
-  subsets: ["latin"],
-});
+import { KasintaLogo } from "@/components/ui/kasinta-logo";
 
 const registerSchema = z
   .object({
@@ -99,21 +93,11 @@ export default function RegisterPage() {
         <div className="flex justify-center gap-2 md:justify-start">
           <Link
             href="/"
-            className={`flex items-center gap-2 text-4xl font-heading hover:translate-x-1 hover:translate-y-1 transition-transform ${
-              bricolageGrotesque.className
-            } ${loading ? "pointer-events-none opacity-50" : ""}`}
+            className={`hover:translate-x-1 hover:translate-y-1 transition-transform ${loading ? "pointer-events-none opacity-50" : ""}`}
             aria-disabled={loading}
             tabIndex={loading ? -1 : undefined}
           >
-            <div className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md">
-              <Image
-                src="/favicon-32x32.png"
-                alt="Site logo"
-                width={32}
-                height={32}
-              ></Image>
-            </div>
-            KASINTA
+            <KasintaLogo size="xl" />
           </Link>
         </div>
         <div className="flex flex-1 items-center justify-center">
@@ -190,8 +174,9 @@ export default function RegisterPage() {
                           value={field.value}
                           onValueChange={field.onChange}
                           disabled={loading}
+                          name="gender"
                         >
-                          <SelectTrigger>
+                          <SelectTrigger id="gender">
                             <SelectValue placeholder="Select gender" />
                           </SelectTrigger>
                           <SelectContent>
@@ -222,8 +207,9 @@ export default function RegisterPage() {
                           value={field.value}
                           onValueChange={field.onChange}
                           disabled={loading}
+                          name="interestedIn"
                         >
-                          <SelectTrigger>
+                          <SelectTrigger id="interestedIn">
                             <SelectValue placeholder="Select preference" />
                           </SelectTrigger>
                           <SelectContent>
