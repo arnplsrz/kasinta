@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Eye, EyeOff } from "lucide-react";
 import { KasintaLogo } from "@/components/ui/kasinta-logo";
+import { useRouter } from "next/navigation";
 
 const loginSchema = z.object({
   email: z.email("Please enter a valid email address"),
@@ -29,7 +30,15 @@ type LoginFormData = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const { login } = useAuth();
+  const { login, user, loading: authLoading } = useAuth();
+  const router = useRouter();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.push("/");
+    }
+  }, [user, authLoading, router]);
 
   const {
     register,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,7 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { Eye, EyeOff } from "lucide-react";
 import { KasintaLogo } from "@/components/ui/kasinta-logo";
+import { useRouter } from "next/navigation";
 
 const registerSchema = z
   .object({
@@ -60,7 +61,15 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const { register: registerUser } = useAuth();
+  const { register: registerUser, user, loading: authLoading } = useAuth();
+  const router = useRouter();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.push("/");
+    }
+  }, [user, authLoading, router]);
 
   const {
     register,

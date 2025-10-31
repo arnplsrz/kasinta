@@ -153,7 +153,10 @@ export default function Hero() {
                   <span className="sr-only">Open menu</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-64">
+              <SheetContent
+                side="right"
+                className="w-64 [&>button]:hidden border-0 border-l-2"
+              >
                 <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
                 <SheetDescription className="sr-only">
                   Access login, registration, and other navigation options
@@ -275,10 +278,10 @@ export default function Hero() {
       {/* Remaining Content */}
       <div className="container mx-auto px-4 py-16">
         <div className="mx-auto max-w-5xl">
-          {/* How Our Site Works Section */}
+          {/* How Kasinta Works Section */}
           <div className="rounded-base border-2 border-border bg-secondary-background p-8 shadow-shadow md:p-12 min-h-[450px] flex flex-col justify-center">
             <h2 className="mb-12 text-center text-3xl font-heading md:text-4xl">
-              How Our Site Works
+              How Kasinta Works
             </h2>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
               <div className="text-center">
@@ -326,7 +329,7 @@ export default function Hero() {
           {/* Testimonials Section */}
           <div className="mt-16 min-h-[500px] flex flex-col justify-center">
             <h2 className="mb-8 text-center text-3xl font-heading md:text-4xl">
-              Stories
+              Kasinta Stories
             </h2>
             <Carousel
               opts={{

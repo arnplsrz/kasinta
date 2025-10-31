@@ -29,6 +29,7 @@ import { useSocket } from "@/contexts/SocketContext";
 import { matchAPI, API_BASE_URL } from "@/lib/api";
 import type { Match, Message } from "@/lib/types";
 import socket from "@/services/socket";
+import { ProfileDialog } from "@/components/layout/ProfileDialog";
 
 interface AppSidebarProps {
   selectedMatchId?: string | null;
@@ -50,6 +51,7 @@ export function AppSidebar({
   const [loading, setLoading] = useState(true);
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
   const selectedMatchIdRef = useRef<string | null>(null);
+  const [profileDialogOpen, setProfileDialogOpen] = useState(false);
 
   // Keep ref in sync with prop
   useEffect(() => {
@@ -218,14 +220,11 @@ export function AppSidebar({
             <DropdownMenuLabel>My Account</DropdownMenuLabel>
             <DropdownMenuSeparator className="text-main-foreground" />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <Link
-                  href="/profile"
-                  className="w-full flex gap-2 items-center"
-                >
+              <DropdownMenuItem onClick={() => setProfileDialogOpen(true)}>
+                <div className="w-full flex gap-2 items-center">
                   <User />
                   <span>Profile</span>
-                </Link>
+                </div>
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator className="text-main-foreground" />
@@ -364,6 +363,10 @@ export function AppSidebar({
           )}
         </SidebarGroup>
       </SidebarContent>
+      <ProfileDialog
+        open={profileDialogOpen}
+        onOpenChange={setProfileDialogOpen}
+      />
     </Sidebar>
   );
 }

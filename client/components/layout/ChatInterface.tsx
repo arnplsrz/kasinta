@@ -111,12 +111,12 @@ export default function ChatInterface({
 
     if (!otherUserId) return;
 
-    console.log("Setting up typing/status listeners for user:", otherUserId);
+    // console.log("Setting up typing/status listeners for user:", otherUserId);
 
     const handleUserTyping = (data: { userId: string; isTyping: boolean }) => {
-      console.log("Received typing event:", data, "expecting:", otherUserId);
+      // console.log("Received typing event:", data, "expecting:", otherUserId);
       if (data.userId === otherUserId) {
-        console.log("Setting isTyping to:", data.isTyping);
+        // console.log("Setting isTyping to:", data.isTyping);
         setIsTyping(data.isTyping);
       }
     };
@@ -124,7 +124,7 @@ export default function ChatInterface({
     // Listen for typing events using socket service
     const socketInstance = socket.getSocket();
     if (!socketInstance) {
-      console.log("No socket instance available for typing listener");
+      // console.log("No socket instance available for typing listener");
       return;
     }
 
@@ -167,7 +167,7 @@ export default function ChatInterface({
         }
       }
     } catch (error) {
-      console.error("Failed to load match/messages:", error);
+      // console.error("Failed to load match/messages:", error);
     } finally {
       setTimeout(() => setLoading(false), 250);
     }
@@ -189,12 +189,12 @@ export default function ChatInterface({
     // Get the socket instance
     const socketInstance = socket.getSocket();
     if (!socketInstance) {
-      console.log("No socket instance available for typing");
+      // console.log("No socket instance available for typing");
       return;
     }
 
     // Emit typing start
-    console.log("Emitting typing start to:", otherUserId);
+    // console.log("Emitting typing start to:", otherUserId);
     socket.sendTyping(otherUserId, true);
 
     // Clear existing timeout
@@ -204,7 +204,7 @@ export default function ChatInterface({
 
     // Set timeout to emit typing stop
     const timeout = setTimeout(() => {
-      console.log("Emitting typing stop to:", otherUserId);
+      // console.log("Emitting typing stop to:", otherUserId);
       socket.sendTyping(otherUserId, false);
     }, 1000);
 
@@ -251,7 +251,7 @@ export default function ChatInterface({
       scrollToBottom();
       inputRef.current?.focus();
     } catch (error) {
-      console.error("Failed to send message:", error);
+      // console.error("Failed to send message:", error);
       setMessageInput(content);
     } finally {
       setSending(false);
@@ -363,7 +363,7 @@ export default function ChatInterface({
               {/* Profile Photo */}
               <div className="flex justify-center">
                 {otherUser.profilePhoto ? (
-                  <Image
+                  <img
                     src={`${API_BASE_URL}${otherUser.profilePhoto}`}
                     alt={otherUser.name}
                     className="w-48 h-48 object-cover rounded-base border-2 border-border shadow-shadow"
