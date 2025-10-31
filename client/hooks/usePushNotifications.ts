@@ -137,8 +137,8 @@ export const usePushNotifications = () => {
         if (!isDocumentVisible) {
           const options: NotificationOptions = {
             body,
-            icon: icon || "/favicon-32x32.png",
-            badge: badge || "/favicon-32x32.png",
+            icon: icon || "/logo.svg",
+            badge: badge || "/logo.svg",
             tag: matchId ? `${type}-${matchId}` : type,
             data: { matchId, type },
             requireInteraction: false,

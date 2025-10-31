@@ -49,10 +49,14 @@ COPY pnpm-lock.yaml* ./
 # Note: Using --no-frozen-lockfile because we're using monorepo lockfile
 RUN pnpm install --prod --no-frozen-lockfile
 
-# Copy built Next.js application from builder
+# Copy built Next.js application from builder (standalone mode)
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/cache ./.next/cache
+
+# Copy public folder to the root (required for image optimization)
+# Images in /public will be optimized on-demand and cached
+COPY --chown=nextjs:nodejs public/ ./public/
 
 # Switch to non-root user
 USER nextjs

@@ -40,8 +40,14 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// Serve uploaded files
-app.use("/uploads", express.static("uploads"));
+// Serve uploaded files with CORS headers
+app.use("/uploads", (req: any, res: any, next: any) => {
+  res.header("Access-Control-Allow-Origin", process.env.CORS_ORIGIN || "http://localhost:3000");
+  res.header("Access-Control-Allow-Methods", "GET, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type");
+  res.header("Cross-Origin-Resource-Policy", "cross-origin");
+  next();
+}, express.static("uploads"));
 
 // Initialize Socket.IO handlers
 const userSockets = initializeSocket(io);

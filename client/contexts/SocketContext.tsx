@@ -51,24 +51,39 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
     if (!token) return;
 
     const newSocket = io(SOCKET_URL, {
-      autoConnect: false,
+      autoConnect: true,
+      auth: {
+        token: token,
+      },
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      reconnectionAttempts: 10,
+      transports: ["websocket", "polling"],
+      upgrade: true,
+      forceNew: true,
     });
-
-    newSocket.connect();
 
     // Authenticate socket
     newSocket.on("connect", () => {
+      console.log("Socket connected, emitting authenticate");
       newSocket.emit("authenticate", token);
     });
 
     newSocket.on("authenticated", () => {
+      console.log("Socket authenticated successfully");
       setConnected(true);
       // Set the socket instance in the socket service
       socketService.setSocket(newSocket);
     });
 
-    newSocket.on("disconnect", () => {
+    newSocket.on("disconnect", (reason) => {
+      console.log("Socket disconnected:", reason);
       setConnected(false);
+    });
+
+    newSocket.on("connect_error", (error) => {
+      console.error("Socket connection error:", error);
     });
 
     newSocket.on("error", (error) => {
