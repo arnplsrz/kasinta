@@ -3,6 +3,7 @@ import { DM_Sans } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { SocketProvider } from "@/contexts/SocketContext";
+import { NotificationProvider } from "@/contexts/NotificationContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -33,7 +34,9 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider>
-            <SocketProvider>{children}</SocketProvider>
+            <SocketProvider>
+              <NotificationProvider>{children}</NotificationProvider>
+            </SocketProvider>
           </AuthProvider>
           <Toaster />
         </ThemeProvider>

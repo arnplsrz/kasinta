@@ -161,10 +161,10 @@ export default function DiscoverySection({
             {/* Profile Photo */}
             <div className="relative h-full bg-main/10">
               {currentMatch.profilePhoto ? (
-                <Image
+                <img
                   src={`${API_BASE_URL}${currentMatch.profilePhoto}`}
                   alt={currentMatch.name}
-                  className="w-full h-full object-cover"
+                  className="mx-auto h-full object-cover"
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">

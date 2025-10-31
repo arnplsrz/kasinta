@@ -20,7 +20,10 @@ const initializeSocket = (io: Server): Map<string, string> => {
     // Authenticate socket connection
     socket.on("authenticate", async (token: string) => {
       try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
+        const decoded = jwt.verify(
+          token,
+          process.env.JWT_SECRET!
+        ) as JwtPayload;
         socket.userId = decoded.userId;
         userSockets.set(decoded.userId, socket.id);
 
@@ -106,6 +109,18 @@ const initializeSocket = (io: Server): Map<string, string> => {
           const receiverSocketId = userSockets.get(receiverId);
           if (receiverSocketId) {
             io.to(receiverSocketId).emit("newMessage", message);
+
+            // Send push notification event for new message
+            io.to(receiverSocketId).emit("notification", {
+              type: "newMessage",
+              title: `New message from ${message.sender.name}`,
+              body: content.trim(),
+              matchId: match.id,
+              senderId: socket.userId,
+              icon: message.sender.profilePhoto
+                ? `${process.env.CORS_ORIGIN || "http://localhost:3000"}${message.sender.profilePhoto}`
+                : null,
+            });
           }
 
           // Confirm to sender
@@ -118,20 +133,17 @@ const initializeSocket = (io: Server): Map<string, string> => {
     );
 
     // Handle typing indicator
-    socket.on(
-      "typing",
-      (data: { receiverId: string; isTyping: boolean }) => {
-        const { receiverId, isTyping } = data;
-        const receiverSocketId = userSockets.get(receiverId);
+    socket.on("typing", (data: { receiverId: string; isTyping: boolean }) => {
+      const { receiverId, isTyping } = data;
+      const receiverSocketId = userSockets.get(receiverId);
 
-        if (receiverSocketId) {
-          io.to(receiverSocketId).emit("userTyping", {
-            userId: socket.userId,
-            isTyping,
-          });
-        }
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit("userTyping", {
+          userId: socket.userId,
+          isTyping,
+        });
       }
-    );
+    });
 
     // Handle message read receipts
     socket.on("messageRead", async (data: { messageId: string }) => {

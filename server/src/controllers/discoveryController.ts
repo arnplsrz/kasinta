@@ -239,6 +239,17 @@ export const swipe = async (req: Request, res: Response): Promise<void> => {
             user2: match.user2,
             createdAt: match.createdAt,
           });
+
+          // Send push notification to target user
+          io.to(targetSocketId).emit("notification", {
+            type: "newMatch",
+            title: "New Match!",
+            body: `You matched with ${match.user1.name}`,
+            matchId: match.id,
+            badge: match.user1.profilePhoto
+              ? `${process.env.CORS_ORIGIN || "http://localhost:3000"}${match.user1.profilePhoto}`
+              : null,
+          });
         }
 
         // Emit to current user (User A)
@@ -252,6 +263,17 @@ export const swipe = async (req: Request, res: Response): Promise<void> => {
             user2: match.user2,
             createdAt: match.createdAt,
           });
+
+          // Send push notification to current user
+          io.to(currentSocketId).emit("notification", {
+            type: "newMatch",
+            title: "New Match!",
+            body: `You matched with ${match.user2.name}`,
+            matchId: match.id,
+            badge: match.user2.profilePhoto
+              ? `${process.env.CORS_ORIGIN || "http://localhost:3000"}${match.user2.profilePhoto}`
+              : null,
+          });
         }
       }
     }
@@ -259,16 +281,17 @@ export const swipe = async (req: Request, res: Response): Promise<void> => {
     res.json({
       message: action === "like" ? "User liked" : "User passed",
       isMatch,
-      match: isMatch && matchData
-        ? {
-            id: matchData.id,
-            user1Id: matchData.user1Id,
-            user2Id: matchData.user2Id,
-            user1: matchData.user1,
-            user2: matchData.user2,
-            createdAt: matchData.createdAt,
-          }
-        : null,
+      match:
+        isMatch && matchData
+          ? {
+              id: matchData.id,
+              user1Id: matchData.user1Id,
+              user2Id: matchData.user2Id,
+              user1: matchData.user1,
+              user2: matchData.user2,
+              createdAt: matchData.createdAt,
+            }
+          : null,
     });
   } catch (error) {
     console.error("Swipe error:", error);
