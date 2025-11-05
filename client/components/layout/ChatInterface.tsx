@@ -425,7 +425,7 @@ export default function ChatInterface({
       {/* Messages */}
       <div
         ref={messagesContainerRef}
-        className="flex-1 p-4 overflow-y-auto flex flex-col-reverse"
+        className="scrollbar flex-1 p-4 overflow-y-auto flex flex-col-reverse"
       >
         <div className="flex flex-col space-y-4">
           <div ref={messagesEndRef} />

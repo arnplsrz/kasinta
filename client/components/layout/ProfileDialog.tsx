@@ -105,12 +105,20 @@ export function ProfileDialog({ open, onOpenChange }: ProfileDialogProps) {
     // Validate file size (5MB max)
     if (file.size > 5 * 1024 * 1024) {
       toast.error("Photo must be less than 5MB");
+      // Reset the input value
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
       return;
     }
 
     // Validate file type
     if (!file.type.startsWith("image/")) {
       toast.error("File must be an image");
+      // Reset the input value
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
       return;
     }
 
@@ -126,6 +134,10 @@ export function ProfileDialog({ open, onOpenChange }: ProfileDialogProps) {
       );
     } finally {
       setUploading(false);
+      // Reset the input value to allow uploading another file
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     }
   };
 

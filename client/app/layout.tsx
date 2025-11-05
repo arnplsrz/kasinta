@@ -26,7 +26,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={dmSans.className}>
+      <body className={`scrollbar ${dmSans.className}`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
