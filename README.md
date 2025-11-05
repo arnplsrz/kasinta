@@ -1,8 +1,10 @@
-# Kasinta
-
 <div align="center">
 
-**A modern, real-time dating web application built with Next.js, Express.js, and Socket.IO**
+<img src="./client/public/logo.svg" height="75" />
+<img src="./client/public/kasinta-title.svg" height="75" />
+
+**A modern, real-time dating web application
+built with Next.js, Express.js, and Socket.IO**
 
 [Features](#features) • [Tech Stack](#tech-stack) • [Quick Start](#quick-start) • [Documentation](#documentation) • [Architecture](#architecture)
 
@@ -10,29 +12,31 @@
 
 ## Screenshots
 
+> Recent redesign with improved mobile responsiveness and modern neobrutalism aesthetic
+
 <table>
   <tr>
     <td width="50%" align="center">
       <img src="./docs/images/landing-page.png" alt="Landing Page" />
       <br />
-      <em>Landing Page</em>
+      <em>Landing Page - Redesigned with improved mobile UX</em>
     </td>
     <td width="50%" align="center">
       <img src="./docs/images/discovery.png" alt="Discovery" />
       <br />
-      <em>Swipe Discovery</em>
+      <em>Swipe Discovery - Redesigned interface</em>
     </td>
   </tr>
   <tr>
     <td width="50%" align="center">
       <img src="./docs/images/match-modal.png" alt="Match Modal" />
       <br />
-      <em>Match Notification</em>
+      <em>Match Notification - Instant real-time updates</em>
     </td>
     <td width="50%" align="center">
       <img src="./docs/images/chat.png" alt="Chat Interface" />
       <br />
-      <em>Real-time Chat</em>
+      <em>Real-time Chat - Redesigned with custom scrollbars</em>
     </td>
   </tr>
 </table>
@@ -46,12 +50,14 @@ Kasinta is a full-stack dating application featuring real-time messaging, swipe-
 - **Secure Authentication** - JWT-based auth with bcrypt password hashing
 - **Real-time Chat** - Socket.IO powered instant messaging with typing indicators
 - **Smart Matching** - Swipe-based discovery with filters (age, distance, gender)
-- **Live Notifications** - Instant match notifications and online status tracking
-- **Responsive Design** - Mobile-first UI with neobrutalism aesthetic
+- **Push Notifications** - Browser-based push notifications for matches and messages
+- **Live Status Tracking** - Real-time online status updates in sidebar
+- **Responsive Design** - Mobile-first UI with modern neobrutalism aesthetic
 - **Dark Mode** - System-aware theme switching
-- **Photo Uploads** - Profile photo management with preview
+- **Photo Uploads** - Profile photo management with preview and validation
 - **Optimized Performance** - Next.js 16 App Router with React 19
-- **Docker Ready** - Complete containerization with docker-compose
+- **Production Ready** - Docker optimized for Fly.io deployment with multi-stage builds
+- **CI/CD Automation** - GitHub Actions workflows for code review and PR assistance
 
 ## Features
 
@@ -76,10 +82,11 @@ Kasinta is a full-stack dating application featuring real-time messaging, swipe-
 
   - Instant message delivery via Socket.IO
   - Typing indicators
-  - Online/offline status
+  - Online/offline status with real-time updates
   - Message read receipts
   - Chat history with timestamps
   - Unread message indicators
+  - Browser push notifications for new messages
 
 - **Match Management**
   - View all matches with last message preview
@@ -90,12 +97,15 @@ Kasinta is a full-stack dating application featuring real-time messaging, swipe-
 
 - JWT-based authentication with 7-day expiration
 - WebSocket connections with automatic reconnection
+- Browser push notification API integration
 - Optimistic UI updates
 - Responsive layouts (mobile, tablet, desktop)
-- Image optimization with Next.js Image
+- Modern neobrutalism design with custom scrollbars
 - Form validation with React Hook Form + Zod
 - PostgreSQL database with Prisma ORM
 - RESTful API with Socket.IO real-time layer
+- Optimized Docker builds with multi-stage configuration
+- GitHub Actions CI/CD workflows
 
 ## Tech Stack
 
@@ -212,7 +222,9 @@ pnpm dev:client
 
 Navigate to [http://localhost:3000](http://localhost:3000)
 
-### Using Docker (Alternative)
+### Using Docker
+
+**Development (docker-compose):**
 
 ```bash
 # Start all services (PostgreSQL + Server + Client)
@@ -224,6 +236,17 @@ docker-compose logs -f
 # Stop all services
 docker-compose down
 ```
+
+**Production (Fly.io):**
+
+The application includes optimized Docker configurations for production deployment on Fly.io:
+
+- **Multi-stage builds** for minimal image size
+- **Non-root user** for security
+- **Health checks** for container monitoring
+- **Environment variable** configuration via Fly.io secrets
+
+See `client/Dockerfile` and `server/Dockerfile` for production build configurations.
 
 ## Project Structure
 
@@ -465,6 +488,37 @@ sequenceDiagram
 - File upload size limits (5MB)
 - SQL injection prevention via Prisma parameterized queries
 
+## Recent Updates
+
+### Latest Improvements
+
+**Docker & Deployment**
+
+- Optimized multi-stage Docker builds for production
+- Configured for Fly.io deployment with health checks
+- Improved image optimization in Next.js production builds
+- Push notification asset configuration for production
+
+**UI/UX Redesign**
+
+- Redesigned landing page with improved mobile responsiveness
+- Updated discovery interface with better card layout
+- Refreshed profile dialog and chat interface
+- Added custom scrollbar styling for better aesthetics
+- Enhanced mobile header and navigation
+
+**Real-time Features**
+
+- Fixed online status not updating in real-time in sidebar
+- Improved WebSocket connection reliability
+- Added browser push notifications for matches and messages
+- Enhanced typing indicators and message delivery
+
+**CI/CD**
+
+- Added GitHub Actions workflow for automated code review
+- Integrated Claude PR Assistant for pull request analysis
+
 ## Development
 
 ### Available Scripts
@@ -522,19 +576,37 @@ pnpm prisma:seed
 - Use strong JWT_SECRET (64+ characters)
 - Configure CORS_ORIGIN to production domain
 - Enable HTTPS
-- Use managed PostgreSQL (AWS RDS, Heroku, etc.)
-- Configure CDN for uploads
+- Use managed PostgreSQL (AWS RDS, Heroku, Fly.io Postgres, etc.)
+- Configure CDN for uploads or use cloud storage
 - Set up environment variables in deployment platform
+- Configure push notification VAPID keys for web push
+- Set up GitHub Actions workflows for automated deployment
+
+## Acknowledgments
+
+### Technologies
+
+- [Next.js](https://nextjs.org/) - React framework
+- [Prisma](https://www.prisma.io/) - Database ORM
+- [Socket.IO](https://socket.io/) - Real-time communication
+
+### UI & Design
+
+- [shadcn/ui](https://ui.shadcn.com/) - UI component library
+- [neobrutalism-components](https://github.com/ekmas/neobrutalism-components/) - Neobrutalism components
+- [Lucide](https://lucide.dev/) - Icon library
+- [Hero Patterns](https://heropatterns.com/) - SVG patterns
+
+### Images
+
+All testimonials photos from [Pexels](https://www.pexels.com/):
+
+- [J carter](https://www.pexels.com/@j-carter-19793)
+- [Pixabay - Friends in snow](https://www.pexels.com/photo/full-length-of-happy-friends-in-snow-on-field-247908/)
+- [Pixabay - Couple on bed](https://www.pexels.com/photo/man-and-woman-lying-on-bed-414032/)
+- [Arthur Brognoli - Person outdoors](https://www.pexels.com/photo/unknown-person-standing-outdoors-2379179/)
+- [Pixabay - Aerial couple](https://www.pexels.com/photo/aerial-photo-of-man-and-woman-lying-on-grass-field-265722/)
 
 ## License
 
 This project is licensed under the MIT License.
-
-## Acknowledgments
-
-- Built with [Next.js](https://nextjs.org/)
-- UI components from [shadcn/ui](https://ui.shadcn.com/)
-- Icons from [Lucide](https://lucide.dev/)
-- Real-time features powered by [Socket.IO](https://socket.io/)
-- Database ORM by [Prisma](https://www.prisma.io/)
-- SVG Patterns by [Hero Patterns](https://heropatterns.com/)

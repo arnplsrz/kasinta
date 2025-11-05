@@ -9,10 +9,12 @@ A full-featured dating app backend built with Express.js, Prisma, PostgreSQL, an
 - **Discovery System**: Browse potential matches with filters (age, gender, distance)
 - **Swipe Mechanism**: Like/dislike users with automatic mutual match detection
 - **Real-time Chat**: Socket.IO powered messaging between matched users
+- **Push Notifications**: Browser notification events for matches and messages
 - **Match Management**: View all matches and unmatch functionality
 - **Online Status**: Real-time online/offline status tracking
 - **Read Receipts**: Message read status and timestamps
 - **Typing Indicators**: See when matches are typing
+- **CORS Support**: Cross-origin headers for uploaded profile photos
 
 ## Tech Stack
 
@@ -112,14 +114,15 @@ The server will start on `http://localhost:5001`
 
 ### Environment Variables
 
-| Variable        | Description                          | Default                 |
-| --------------- | ------------------------------------ | ----------------------- |
-| `DATABASE_URL`  | PostgreSQL connection string         | -                       |
-| `JWT_SECRET`    | Secret key for JWT signing           | -                       |
-| `PORT`          | Server port                          | `5000`                  |
-| `NODE_ENV`      | Environment (development/production) | `development`           |
-| `CORS_ORIGIN`   | Frontend URL for CORS                | `http://localhost:3000` |
-| `MAX_FILE_SIZE` | Max upload file size in bytes        | `5242880` (5MB)         |
+| Variable        | Description                             | Default                         |
+| --------------- | --------------------------------------- | ------------------------------- |
+| `DATABASE_URL`  | PostgreSQL connection string            | -                               |
+| `JWT_SECRET`    | Secret key for JWT signing              | -                               |
+| `PORT`          | Server port                             | `5000`                          |
+| `NODE_ENV`      | Environment (development/production)    | `development`                   |
+| `CORS_ORIGIN`   | Frontend URL for CORS                   | `http://localhost:3000`         |
+| `BACKEND_URL`   | Backend URL for push notification assets| `http://localhost:${PORT}`      |
+| `MAX_FILE_SIZE` | Max upload file size in bytes           | `5242880` (5MB)                 |
 
 ## Scripts
 
@@ -173,6 +176,10 @@ pnpm prisma:deploy # Deploy migrations (production)
 - `POST /api/chat/:matchUserId` - Send message (HTTP)
 - `GET /api/chat/unread/count` - Get unread message count
 
+### Static Files
+
+- `GET /uploads/profiles/:filename` - Serve uploaded profile photos with CORS headers
+
 ### Health Check
 
 - `GET /api/health` - Server health status
@@ -195,8 +202,22 @@ pnpm prisma:deploy # Deploy migrations (production)
 - `newMatch` - New match notification
 - `unmatch` - User unmatched notification
 - `userTyping` - Typing indicator from match
+- `userStatusChange` - User online/offline status update
 - `messageReadReceipt` - Message read confirmation
+- `notification` - Push notification event (newMatch, newMessage types)
 - `error` - Error occurred
+
+**Notification Event Payload**:
+
+The `notification` event includes:
+
+- `type`: Event type (`newMatch` or `newMessage`)
+- `title`: Notification heading
+- `body`: Notification content
+- `matchId`: Associated match ID
+- `badge`: Profile photo URL (uses `BACKEND_URL` + user's `profilePhoto`)
+- `icon`: (for messages) Sender's profile photo URL
+- `senderId`: (for messages) ID of message sender
 
 ## Deployment
 
@@ -226,13 +247,58 @@ docker run -p 5000:5000 \
  dating-app-server
 ```
 
-## Notes
+## Implementation Notes
+
+### File Upload & CORS
 
 - Profile photos are stored locally in `uploads/profiles/`
+- `/uploads` endpoint serves static files with CORS headers:
+  - `Access-Control-Allow-Origin`: Set to `CORS_ORIGIN`
+  - `Access-Control-Allow-Methods`: GET, OPTIONS
+  - `Cross-Origin-Resource-Policy`: cross-origin
+- Allows frontend to load profile photos from different origins (development, production)
+
+### Push Notifications
+
+**Architecture**:
+
+- Sent via Socket.IO `notification` event to connected users
+- Only sent to online users (checked via `userSockets` Map)
+- Badge URLs use `BACKEND_URL` environment variable for correct origin
+
+**Notification Types**:
+
+1. **New Match** (`discoveryController.ts`):
+   - Emitted to both users when mutual like detected
+   - Includes match partner's profile photo as badge
+   - Triggered during swipe action
+
+2. **New Message** (`socketHandler.ts`):
+   - Emitted to message recipient
+   - Includes sender's profile photo as icon/badge
+   - Includes message preview in body
+   - Triggered on real-time message send
+
+**Badge URL Format**: `${BACKEND_URL}${user.profilePhoto}`
+
+### Security & Authentication
+
 - JWT tokens expire after 7 days
-- Distance calculations use the Haversine formula
-- User locations are stored as latitude/longitude
 - Passwords are hashed using bcryptjs with 10 salt rounds
-- Socket.IO maintains a centralized user-socket mapping
+- All chat operations verify match exists before allowing access
+- Socket authentication via JWT token on connect
+
+### Distance Calculations
+
+- Uses Haversine formula for accurate distance between coordinates
+- User locations stored as latitude/longitude
+- Distance filtering applied in discovery queries
+
+### Real-time Architecture
+
+- Socket.IO maintains centralized `userSockets` Map (userId -> socketId)
+- Shared via `app.set()` for access in route handlers
+- Online status tracked in database and broadcast to connected users
+- Connection persists across page navigations
 
 For frontend documentation, see the [client README](../client/README.md).

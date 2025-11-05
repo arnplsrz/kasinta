@@ -7,13 +7,15 @@ A modern dating app frontend built with Next.js 16, React 19, TypeScript, and Ta
 - **User Authentication**: Secure JWT-based registration and login
 - **Profile Management**: Edit profile with photo upload and preferences
 - **Discovery System**: Swipe-based matching with advanced filters
-- **Real-time Chat**: Socket.IO powered instant messaging
+- **Real-time Chat**: Socket.IO powered instant messaging with typing indicators
+- **Push Notifications**: Browser-based notifications for new matches and messages
 - **Match Notifications**: Live notifications when mutual likes occur
 - **Theme Support**: Dark/light mode with system preference detection
 - **Responsive Design**: Mobile-first, works on all screen sizes
 - **Sidebar Navigation**: Collapsible sidebar with match list
-- **Online Status**: See when matches are online
+- **Online Status**: Real-time presence tracking with visual indicators
 - **Undo Swipes**: Revert accidental swipes
+- **Service Worker**: Background notification handling with click navigation
 
 ## Tech Stack
 
@@ -22,11 +24,13 @@ A modern dating app frontend built with Next.js 16, React 19, TypeScript, and Ta
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS 4
 - **UI Components**: shadcn/ui with neobrutalism theme
-- **Real-time**: Socket.IO Client
+- **Real-time**: Socket.IO Client with auto-reconnection
+- **Push Notifications**: Service Worker API with notification permissions
 - **Icons**: Lucide React
 - **Theme**: next-themes (dark/light mode)
 - **State Management**: React Context API
 - **Package Manager**: pnpm
+- **Deployment**: Docker with multi-stage builds (standalone mode)
 
 ## Project Structure
 
@@ -59,13 +63,20 @@ client/
 │   └── ThemeToggle.tsx               # Theme switcher
 ├── contexts/
 │   ├── AuthContext.tsx               # Authentication state
-│   └── SocketContext.tsx             # Socket.IO connection
+│   ├── SocketContext.tsx             # Socket.IO connection
+│   └── NotificationContext.tsx       # Push notification management
+├── hooks/
+│   └── usePushNotifications.ts       # Notification permissions & display
 ├── lib/
 │   ├── api.ts                        # API client functions
 │   ├── types.ts                      # TypeScript types
 │   └── utils.ts                      # Utility functions
+├── public/
+│   ├── sw.js                         # Service Worker for notifications
+│   └── logo.svg                      # App logo for notifications
 ├── .env.local                        # Environment variables (create this)
 ├── .env.example                      # Environment template
+├── Dockerfile                        # Production Docker build
 ├── tailwind.config.ts                # Tailwind configuration
 ├── components.json                   # shadcn/ui config
 └── package.json
@@ -116,7 +127,12 @@ Create `.env.local` in the client directory:
 NEXT_PUBLIC_API_URL=http://localhost:5001
 ```
 
-This configures the backend API endpoint. In production, update to your deployed backend URL.
+This configures the backend API endpoint. In production, update to your deployed backend URL (e.g., https://kasinta-backend.fly.dev).
+
+**Image Configuration**:
+- Images are served unoptimized (`unoptimized: true`) to avoid Docker optimization issues
+- Remote patterns configured for localhost:4000, localhost:5001, and production backend
+- Profile photos loaded from backend `/uploads` endpoint with CORS support
 
 See [.env.example](.env.example) for the complete template.
 
@@ -153,28 +169,49 @@ React Context providing:
 
 #### 2. Socket.IO Context ([contexts/SocketContext.tsx](contexts/SocketContext.tsx))
 
-Real-time communication layer:
+Real-time communication layer with robust reconnection:
 
-- Automatic socket connection when authenticated
-- JWT-based socket authentication
+- Automatic socket connection when authenticated (`autoConnect: true`)
+- JWT-based socket authentication via `auth` object
+- Advanced reconnection settings:
+  - 10 reconnection attempts with exponential backoff (1-5 seconds)
+  - WebSocket transport with polling fallback
+  - Force new connection on authentication changes
 - Event listeners for:
   - `newMessage` - Real-time message delivery
   - `newMatch` - Instant match notifications
   - `unmatch` - Unmatch event handling
+  - `notification` - Push notification events
+  - `userStatusChange` - Online/offline presence updates
+  - `userTyping` - Typing indicators
+- Debug logging for connection events (connect, disconnect, errors)
 - Connection status tracking
 - `sendMessage()` helper for real-time messaging
 
-#### 3. Theme Provider ([components/ThemeProvider.tsx](components/ThemeProvider.tsx))
+#### 3. Notification Context ([contexts/NotificationContext.tsx](contexts/NotificationContext.tsx))
+
+Browser push notification system:
+
+- Permission request management with user-friendly UI
+- Service Worker registration and lifecycle management
+- Notification display with smart visibility logic (only when tab not focused)
+- Click-to-navigate functionality for deep linking to chats
+- Notification queuing for pending permissions
+- Integration with Socket.IO for real-time notification events
+- Support for match and message notification types
+
+#### 4. Theme Provider ([components/ThemeProvider.tsx](components/ThemeProvider.tsx))
 
 - Dark/light mode support via next-themes
 - System preference detection
 - Theme toggle component
 - Persistent theme selection
 
-#### 4. Root Layout ([app/layout.tsx](app/layout.tsx))
+#### 5. Root Layout ([app/layout.tsx](app/layout.tsx))
 
-- Wraps entire app with AuthProvider, SocketProvider, and ThemeProvider
-- Configured with Geist fonts
+- Wraps entire app with AuthProvider, SocketProvider, NotificationProvider, and ThemeProvider
+- Configured with custom fonts: Inter (sans), Geist Mono (mono), Bricolage Grotesque (headings)
+- Service Worker script registration in production
 - Updated metadata for Kasinta branding
 
 ## Application Structure
@@ -193,10 +230,12 @@ The main application page adapts based on authentication status:
 
 - Integrated sidebar-based layout with [SidebarProvider](components/ui/sidebar.tsx)
 - [AppSidebar](components/layout/AppSidebar.tsx) for navigation
+- [NotificationListener](components/NotificationListener.tsx) for push notifications
 - Main content area showing either:
   - [DiscoverySection](components/layout/DiscoverySection.tsx) (default)
   - [ChatInterface](components/layout/ChatInterface.tsx) (when match selected)
 - Seamless switching between discovery and chat views
+- Browser notification prompt for permission (if not granted)
 
 ### Authentication Pages
 
@@ -336,9 +375,12 @@ Landing page for unauthenticated users:
 
 **Connection**:
 
-- Socket connects when user is authenticated
-- Auto-authenticates via JWT token emit
+- Socket connects automatically when user is authenticated (`autoConnect: true`)
+- JWT token passed in connection `auth` object
+- Robust reconnection strategy with 10 attempts and exponential backoff (1-5s)
+- Transport upgrade from polling to WebSocket
 - Maintains userId -> socketId mapping on server
+- Debug logging for connection, disconnect, and error events
 
 **Events**:
 
@@ -347,16 +389,37 @@ Landing page for unauthenticated users:
    - Instantly delivers messages to recipient
    - Updates chat UI in real-time
    - Triggers in active conversation
+   - Triggers push notification if tab not focused
 
 2. **New Matches** (`newMatch`):
 
    - Notified when mutual like occurs
    - Shows "It's a Match!" modal
    - Updates matches list
+   - Triggers push notification with profile photo badge
 
 3. **Unmatch** (`unmatch`):
+
    - Removes match from both users' lists
    - Updates UI instantly
+   - Navigates away if currently chatting with unmatched user
+
+4. **Typing Indicators** (`userTyping`):
+
+   - Shows when match is typing in chat
+   - Auto-clears after 1 second of inactivity
+
+5. **Online Status** (`userStatusChange`):
+
+   - Real-time presence updates
+   - Green dot indicator in sidebar and chat header
+   - Updates on login/logout/disconnect
+
+6. **Push Notifications** (`notification`):
+   - Browser notifications for matches and messages
+   - Badge includes sender's profile photo from backend URL
+   - Click-to-navigate to relevant chat
+   - Smart display (only when tab not visible/focused)
 
 **Fallback**:
 
@@ -364,12 +427,46 @@ Landing page for unauthenticated users:
 - Chat can function without WebSocket connection
 - Connection status displayed in UI
 
+### Push Notifications
+
+**Service Worker** ([public/sw.js](public/sw.js)):
+
+- Registered on app load in production
+- Handles notification display and click events
+- Persists in background for always-on notifications
+- Deep linking to specific chats on notification click
+- Notification icon uses `/logo.svg` from public folder
+
+**Permission Flow**:
+
+1. User is authenticated and socket connected
+2. System checks notification permission status
+3. If not granted, shows permission request card
+4. User grants permission via browser prompt
+5. Future matches/messages trigger notifications (when tab not focused)
+
+**Notification Types**:
+
+- **New Match**: "New Match! You matched with [Name]"
+  - Badge: Match's profile photo
+  - Click action: Opens chat with new match
+- **New Message**: "New message from [Name]: [Preview]"
+  - Badge: Sender's profile photo
+  - Click action: Opens chat with sender
+
+**Smart Display Logic**:
+
+- Only shows when document is not visible (user not on tab)
+- Prevents duplicate notifications when user is actively viewing app
+- Badge URLs use `BACKEND_URL` environment variable for correct origin
+
 ## State Management
 
 ### Global State (Context API)
 
 - **AuthContext**: User authentication and profile
 - **SocketContext**: WebSocket connection and real-time events
+- **NotificationContext**: Push notification permissions and display
 
 ### Local Component State
 
@@ -422,5 +519,44 @@ useEffect(() => {
 - Disabled buttons during async operations
 - Loading spinners for page transitions
 - Optimistic UI updates where appropriate
+
+## Docker Deployment
+
+### Production Build ([Dockerfile](Dockerfile))
+
+The client uses a multi-stage Docker build optimized for Next.js standalone mode:
+
+**Build Stage**:
+
+- Installs dependencies with pnpm
+- Builds Next.js application with standalone output
+- Optimizes for minimal production bundle
+
+**Production Stage**:
+
+- Copies standalone server, static assets, and cache
+- Copies public folder to root for runtime image optimization
+- Runs as non-root user (nextjs:nodejs) for security
+- Exposes port 3000
+- Starts via `node server.js` in standalone directory
+
+**Key Features**:
+
+- Image optimization support with `.next/cache` directory
+- Static file serving from `/public` directory
+- Production-ready with minimal attack surface
+- ~200MB final image size
+
+**Building & Running**:
+
+```bash
+# Build image
+docker build -t kasinta-client .
+
+# Run container
+docker run -p 3000:3000 \
+  -e NEXT_PUBLIC_API_URL=https://kasinta-backend.fly.dev \
+  kasinta-client
+```
 
 For backend documentation, see the [server README](../server/README.md).
