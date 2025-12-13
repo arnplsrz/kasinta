@@ -567,7 +567,7 @@ pnpm prisma:seed
 **Development URLs:**
 
 - Frontend: http://localhost:3000
-- Backend: http://localhost:5001
+- Backend: http://localhost:4000
 - Database: localhost:5432
 
 **Production Considerations:**

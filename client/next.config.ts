@@ -11,17 +11,6 @@ const nextConfig: NextConfig = {
         port: "4000",
         pathname: "/uploads/**",
       },
-      {
-        protocol: "http",
-        hostname: "localhost",
-        port: "5001",
-        pathname: "/uploads/**",
-      },
-      {
-        protocol: "https",
-        hostname: "kasinta-backend.fly.dev",
-        pathname: "/uploads/**",
-      },
     ],
   },
 };

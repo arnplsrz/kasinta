@@ -111,7 +111,6 @@ const initializeSocket = (io: Server): Map<string, string> => {
             io.to(receiverSocketId).emit("newMessage", message);
 
             // Send push notification event for new message
-            const backendUrl = process.env.BACKEND_URL || `http://localhost:${process.env.PORT || 5000}`;
             io.to(receiverSocketId).emit("notification", {
               type: "newMessage",
               title: `New message from ${message.sender.name}`,
@@ -119,7 +118,7 @@ const initializeSocket = (io: Server): Map<string, string> => {
               matchId: match.id,
               senderId: socket.userId,
               icon: message.sender.profilePhoto
-                ? `${backendUrl}${message.sender.profilePhoto}`
+                ? `http://localhost:${process.env.PORT}${message.sender.profilePhoto}`
                 : null,
             });
           }

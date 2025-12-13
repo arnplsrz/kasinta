@@ -124,14 +124,14 @@ pnpm dev
 Create `.env.local` in the client directory:
 
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:5001
+NEXT_PUBLIC_API_URL=http://localhost:4000
 ```
 
 This configures the backend API endpoint. In production, update to your deployed backend URL (e.g., https://kasinta-backend.fly.dev).
 
 **Image Configuration**:
 - Images are served unoptimized (`unoptimized: true`) to avoid Docker optimization issues
-- Remote patterns configured for localhost:4000, localhost:5001, and production backend
+- Remote patterns configured for localhost:4000 and production backend
 - Profile photos loaded from backend `/uploads` endpoint with CORS support
 
 See [.env.example](.env.example) for the complete template.

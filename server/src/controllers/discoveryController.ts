@@ -241,14 +241,13 @@ export const swipe = async (req: Request, res: Response): Promise<void> => {
           });
 
           // Send push notification to target user
-          const backendUrl = process.env.BACKEND_URL || `http://localhost:${process.env.PORT || 5000}`;
           io.to(targetSocketId).emit("notification", {
             type: "newMatch",
             title: "New Match!",
             body: `You matched with ${match.user1.name}`,
             matchId: match.id,
             badge: match.user1.profilePhoto
-              ? `${backendUrl}${match.user1.profilePhoto}`
+              ? `http://localhost:${process.env.PORT}${match.user1.profilePhoto}`
               : null,
           });
         }
@@ -266,14 +265,13 @@ export const swipe = async (req: Request, res: Response): Promise<void> => {
           });
 
           // Send push notification to current user
-          const backendUrl = process.env.BACKEND_URL || `http://localhost:${process.env.PORT || 5000}`;
           io.to(currentSocketId).emit("notification", {
             type: "newMatch",
             title: "New Match!",
             body: `You matched with ${match.user2.name}`,
             matchId: match.id,
             badge: match.user2.profilePhoto
-              ? `${backendUrl}${match.user2.profilePhoto}`
+              ? `http://localhost:${process.env.PORT}${match.user2.profilePhoto}`
               : null,
           });
         }

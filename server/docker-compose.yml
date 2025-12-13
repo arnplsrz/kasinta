@@ -22,13 +22,13 @@ services:
     restart: unless-stopped
     environment:
       NODE_ENV: production
-      PORT: 5001
+      PORT: 4000
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/kasinta_db
       JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-this}
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
       MAX_FILE_SIZE: 5242880
     ports:
-      - "5001:5001"
+      - "4000:4000"
     depends_on:
       - postgres
     networks:

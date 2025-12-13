@@ -1,5 +1,5 @@
 ### Variables
-@baseUrl = http://localhost:5001
+@baseUrl = http://localhost:4000
 @token = kuya-will
 @userId = 123
 @matchUserId = 123

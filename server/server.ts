@@ -23,7 +23,7 @@ const server = http.createServer(app);
 // Initialize Socket.IO
 const io = new Server(server, {
   cors: {
-    origin: process.env.CORS_ORIGIN || "http://localhost:3000",
+    origin: process.env.CORS_ORIGIN,
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -32,7 +32,7 @@ const io = new Server(server, {
 // // Middleware
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || "http://localhost:3000",
+    origin: process.env.CORS_ORIGIN,
     credentials: true,
   })
 );
@@ -46,7 +46,7 @@ app.use(passport.initialize());
 
 // Serve uploaded files with CORS headers
 app.use("/uploads", (req: any, res: any, next: any) => {
-  res.header("Access-Control-Allow-Origin", process.env.CORS_ORIGIN || "http://localhost:3000");
+  res.header("Access-Control-Allow-Origin", process.env.CORS_ORIGIN);
   res.header("Access-Control-Allow-Methods", "GET, OPTIONS");
   res.header("Access-Control-Allow-Headers", "Content-Type");
   res.header("Cross-Origin-Resource-Policy", "cross-origin");
@@ -116,12 +116,12 @@ app.use(
 );
 
 // Start server
-const PORT = Number(process.env.PORT) || 5001;
+const PORT = Number(process.env.PORT);
 const HOST = "0.0.0.0";
 
 server.listen(PORT, HOST, () => {
   console.log(`Server running on ${HOST}:${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
+  console.log(`Environment: ${process.env.NODE_ENV}`);
 });
 
 // Handle unhandled promise rejections

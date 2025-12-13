@@ -90,7 +90,7 @@ Update `.env` with your configuration:
 ```env
 DATABASE_URL="postgresql://username:password@localhost:5432/kasinta_db?schema=public"
 JWT_SECRET="your-secret-key"
-PORT=5001
+PORT=4000
 CORS_ORIGIN=http://localhost:3000
 ```
 
@@ -110,7 +110,7 @@ pnpm prisma:migrate
 pnpm dev
 ```
 
-The server will start on `http://localhost:5001`
+The server will start on `http://localhost:4000`
 
 ### Environment Variables
 
