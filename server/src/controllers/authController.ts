@@ -92,6 +92,15 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
+    // Check if user has a password (OAuth-only users don't have passwords)
+    if (!user.password) {
+      res.status(400).json({
+        message: "Please sign in with Google",
+        requiresOAuth: true
+      });
+      return;
+    }
+
     // Check password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
@@ -186,5 +195,50 @@ export const getCurrentUser = async (req: Request, res: Response): Promise<void>
   } catch (error) {
     console.error("Get current user error:", error);
     res.status(500).json({ message: "Server error" });
+  }
+};
+
+// Google OAuth callback
+export const googleCallback = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const user = req.user as any; // Set by Passport
+
+    if (!user) {
+      res.redirect(`${process.env.FRONTEND_URL}/login?error=oauth_failed`);
+      return;
+    }
+
+    // Update online status
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        isOnline: true,
+        lastSeen: new Date(),
+      },
+    });
+
+    // Check if profile is complete (age and gender required for dating app)
+    if (!user.age || !user.gender) {
+      // Redirect to profile completion
+      const token = generateToken(user.id);
+      res.redirect(`${process.env.FRONTEND_URL}/profile/complete?token=${token}&firstLogin=true`);
+      return;
+    }
+
+    // Generate JWT token
+    const token = generateToken(user.id);
+
+    // Set cookie
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    // Redirect to frontend with token
+    res.redirect(`${process.env.FRONTEND_URL}/?token=${token}`);
+  } catch (error) {
+    console.error("Google callback error:", error);
+    res.redirect(`${process.env.FRONTEND_URL}/login?error=oauth_failed`);
   }
 };

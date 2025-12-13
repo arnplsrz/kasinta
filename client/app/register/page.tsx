@@ -18,6 +18,7 @@ import {
   FieldDescription,
   FieldGroup,
   FieldLabel,
+  FieldSeparator,
 } from "@/components/ui/field";
 import { Spinner } from "@/components/ui/spinner";
 import { useForm, Controller } from "react-hook-form";
@@ -27,6 +28,7 @@ import { toast } from "sonner";
 import { Eye, EyeOff } from "lucide-react";
 import { KasintaLogo } from "@/components/ui/kasinta-logo";
 import { useRouter } from "next/navigation";
+import { GoogleButton } from "@/components/ui/google-button";
 
 const registerSchema = z
   .object({
@@ -304,11 +306,16 @@ export default function RegisterPage() {
                     )}
                   </Field>
                 </FieldGroup>
-                <Field>
-                  <Button type="submit" disabled={loading} className="w-full">
-                    {loading ? <Spinner /> : "Create Account"}
-                  </Button>
-                </Field>
+                <FieldGroup>
+                  <Field>
+                    <Button type="submit" disabled={loading} className="w-full">
+                      {loading ? <Spinner /> : "Create Account"}
+                    </Button>
+                  </Field>
+                  <Field>
+                    <GoogleButton mode="signup" disabled={loading} />
+                  </Field>
+                </FieldGroup>
                 <Field>
                   <FieldDescription className="px-6 text-center">
                     Already have an account?{" "}

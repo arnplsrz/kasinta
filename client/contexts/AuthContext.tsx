@@ -35,6 +35,39 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
   const pathname = usePathname();
 
+  // Check for OAuth token in URL
+  useEffect(() => {
+    const handleOAuthToken = async () => {
+      // Check if we're in the browser
+      if (typeof window === 'undefined') return;
+
+      const params = new URLSearchParams(window.location.search);
+      const token = params.get('token');
+
+      if (token) {
+        // Store the token
+        localStorage.setItem('token', token);
+
+        // Clean the URL
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, '', newUrl);
+
+        // Fetch user data
+        try {
+          const userData = await authAPI.getMe();
+          setUser(userData);
+          setLoading(false);
+        } catch (error) {
+          console.error('Failed to fetch user after OAuth:', error);
+          localStorage.removeItem('token');
+          setLoading(false);
+        }
+      }
+    };
+
+    handleOAuthToken();
+  }, []);
+
   // Check if user is authenticated on mount
   useEffect(() => {
     const checkAuth = async () => {

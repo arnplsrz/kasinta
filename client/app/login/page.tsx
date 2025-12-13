@@ -19,6 +19,7 @@ import { z } from "zod";
 import { Eye, EyeOff } from "lucide-react";
 import { KasintaLogo } from "@/components/ui/kasinta-logo";
 import { useRouter } from "next/navigation";
+import { GoogleButton } from "@/components/ui/google-button";
 
 const loginSchema = z.object({
   email: z.email("Please enter a valid email address"),
@@ -39,6 +40,29 @@ export default function LoginPage() {
       router.push("/");
     }
   }, [user, authLoading, router]);
+
+  // Handle OAuth errors from URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const error = params.get('error');
+
+    if (error) {
+      const errorMessages: Record<string, string> = {
+        'access_denied': 'Login cancelled. Please try again.',
+        'invalid_state': 'Invalid authentication request. Please try again.',
+        'account_conflict': 'This Google account is already linked to another user.',
+        'oauth_config_error': 'Authentication system error. Please try again later.',
+        'oauth_service_unavailable': 'Google sign-in is temporarily unavailable. Please use email/password.',
+        'oauth_failed': 'Authentication failed. Please try again.',
+      };
+
+      const message = errorMessages[error] || 'An error occurred during sign-in. Please try again.';
+      toast.error(message);
+
+      // Clean URL
+      window.history.replaceState({}, '', '/login');
+    }
+  }, []);
 
   const {
     register,
@@ -135,11 +159,16 @@ export default function LoginPage() {
                     </p>
                   )}
                 </Field>
-                <Field>
-                  <Button type="submit" disabled={loading} className="w-full">
-                    {loading ? <Spinner /> : "Sign In"}
-                  </Button>
-                </Field>
+                <FieldGroup>
+                  <Field>
+                    <Button type="submit" disabled={loading} className="w-full">
+                      {loading ? <Spinner /> : "Sign In"}
+                    </Button>
+                  </Field>
+                  <Field>
+                    <GoogleButton mode="signin" disabled={loading} />
+                  </Field>
+                </FieldGroup>
                 <Field>
                   <FieldDescription className="text-center">
                     Don&apos;t have an account?{" "}

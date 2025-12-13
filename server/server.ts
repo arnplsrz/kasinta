@@ -7,6 +7,7 @@ import { Server } from "socket.io";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import initializeSocket from "./src/socket/socketHandler";
+import passport from "./src/middleware/passport";
 
 // Import routes
 import authRoutes from "./src/routes/auth";
@@ -39,6 +40,9 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+// Initialize Passport
+app.use(passport.initialize());
 
 // Serve uploaded files with CORS headers
 app.use("/uploads", (req: any, res: any, next: any) => {
