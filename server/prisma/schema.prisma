@@ -7,16 +7,15 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
-  password  String?  // Made optional for OAuth-only users
+  password  String?
   name      String
-  age       Int?     // Made optional for OAuth profile completion
-  gender    String?  @default("other") // Made optional for OAuth profile completion
+  age       Int?
+  gender    String?  @default("other")
   bio       String?  @db.Text
 
   // OAuth fields
