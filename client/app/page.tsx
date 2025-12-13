@@ -19,21 +19,24 @@ import { KasintaLogo } from "@/components/ui/kasinta-logo";
 
 export default function HomePage() {
   const { user, loading } = useAuth();
-  const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
-  const [refreshDiscovery, setRefreshDiscovery] = useState(0);
 
-  // Handle notification clicks and URL parameters for direct chat navigation
-  useEffect(() => {
-    // Check URL parameters on mount
+  // Initialize selectedMatchId from URL parameters during render
+  const [selectedMatchId, setSelectedMatchId] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
     const params = new URLSearchParams(window.location.search);
     const matchIdFromUrl = params.get("matchId");
     if (matchIdFromUrl) {
-      setSelectedMatchId(matchIdFromUrl);
-      // Clean up URL
+      // Clean up URL immediately
       window.history.replaceState({}, "", window.location.pathname);
+      return matchIdFromUrl;
     }
+    return null;
+  });
 
-    // Listen for popstate events (triggered by notification click handler)
+  const [refreshDiscovery, setRefreshDiscovery] = useState(0);
+
+  // Handle notification clicks via popstate events
+  useEffect(() => {
     const handlePopState = () => {
       const params = new URLSearchParams(window.location.search);
       const matchId = params.get("matchId");
