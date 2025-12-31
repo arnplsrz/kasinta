@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import prisma from "../config/database";
-import { Prisma } from "@prisma/client";
+import { Prisma } from "../../generated/prisma_client/client";
 
 // Helper function to calculate distance between two coordinates (Haversine formula)
 function calculateDistance(

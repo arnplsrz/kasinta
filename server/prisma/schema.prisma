@@ -2,7 +2,8 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../generated/prisma_client"
 }
 
 datasource db {
@@ -10,17 +11,17 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String?
-  name      String
-  age       Int?
-  gender    String?  @default("other")
-  bio       String?  @db.Text
+  id       String  @id @default(uuid())
+  email    String  @unique
+  password String?
+  name     String
+  age      Int?
+  gender   String? @default("other")
+  bio      String? @db.Text
 
   // OAuth fields
-  googleId     String?  @unique
-  authProvider String   @default("email") // email, google, both
+  googleId     String? @unique
+  authProvider String  @default("email") // email, google, both
 
   // Profile
   profilePhoto String?
@@ -30,14 +31,14 @@ model User {
   longitude Float?
 
   // Preferences
-  interestedIn      String  @default("everyone") // male, female, everyone
-  preferenceMinAge  Int     @default(18)
-  preferenceMaxAge  Int     @default(100)
+  interestedIn       String @default("everyone") // male, female, everyone
+  preferenceMinAge   Int    @default(18)
+  preferenceMaxAge   Int    @default(100)
   preferenceDistance Float  @default(50) // in kilometers
 
   // Online status
-  isOnline  Boolean  @default(false)
-  lastSeen  DateTime @default(now())
+  isOnline Boolean  @default(false)
+  lastSeen DateTime @default(now())
 
   // Timestamps
   createdAt DateTime @default(now())
@@ -64,7 +65,7 @@ model Swipe {
   id        String   @id @default(uuid())
   userId    String
   targetId  String
-  action    String   // "like" or "dislike"
+  action    String // "like" or "dislike"
   createdAt DateTime @default(now())
 
   user   User @relation("UserLikes", fields: [userId], references: [id], onDelete: Cascade)
@@ -92,14 +93,14 @@ model Match {
 }
 
 model Message {
-  id        String   @id @default(uuid())
-  content   String   @db.Text
-  senderId  String
+  id         String  @id @default(uuid())
+  content    String  @db.Text
+  senderId   String
   receiverId String
-  matchId   String?
+  matchId    String?
 
-  read      Boolean  @default(false)
-  readAt    DateTime?
+  read   Boolean   @default(false)
+  readAt DateTime?
 
   createdAt DateTime @default(now())
 
