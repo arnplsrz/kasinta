@@ -18,12 +18,12 @@ A full-featured dating app backend built with Express.js, Prisma, PostgreSQL, an
 
 ## Tech Stack
 
-- **Runtime**: Node.js with TypeScript
+- **Runtime**: Node.js 20+ with TypeScript
 - **Framework**: Express.js 5.x
-- **Database**: PostgreSQL with Prisma ORM
+- **Database**: PostgreSQL with Prisma ORM 7.1.0
 - **Real-time**: Socket.IO
 - **Authentication**: JWT (jsonwebtoken) with bcryptjs
-- **File Upload**: Multer
+- **File Upload**: Multer 2.0.2
 - **Package Manager**: pnpm
 
 ## Project Structure
@@ -64,7 +64,7 @@ server/
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 20+
 - PostgreSQL 12+
 - pnpm 10.x
 
@@ -114,15 +114,15 @@ The server will start on `http://localhost:4000`
 
 ### Environment Variables
 
-| Variable        | Description                             | Default                         |
-| --------------- | --------------------------------------- | ------------------------------- |
-| `DATABASE_URL`  | PostgreSQL connection string            | -                               |
-| `JWT_SECRET`    | Secret key for JWT signing              | -                               |
-| `PORT`          | Server port                             | `5000`                          |
-| `NODE_ENV`      | Environment (development/production)    | `development`                   |
-| `CORS_ORIGIN`   | Frontend URL for CORS                   | `http://localhost:3000`         |
-| `BACKEND_URL`   | Backend URL for push notification assets| `http://localhost:${PORT}`      |
-| `MAX_FILE_SIZE` | Max upload file size in bytes           | `5242880` (5MB)                 |
+| Variable        | Description                              | Default                    |
+| --------------- | ---------------------------------------- | -------------------------- |
+| `DATABASE_URL`  | PostgreSQL connection string             | -                          |
+| `JWT_SECRET`    | Secret key for JWT signing               | -                          |
+| `PORT`          | Server port                              | `5000`                     |
+| `NODE_ENV`      | Environment (development/production)     | `development`              |
+| `CORS_ORIGIN`   | Frontend URL for CORS                    | `http://localhost:3000`    |
+| `BACKEND_URL`   | Backend URL for push notification assets | `http://localhost:${PORT}` |
+| `MAX_FILE_SIZE` | Max upload file size in bytes            | `5242880` (5MB)            |
 
 ## Scripts
 
@@ -223,29 +223,41 @@ The `notification` event includes:
 
 ### Using Docker Compose (Recommended)
 
+The server includes a production-ready Dockerfile with the following features:
+
+- **Multi-stage build** using Node.js 24 Alpine
+- **Automatic Prisma migrations** on container startup
+- **Non-root user** (nodejs:1001) for security
+- **Health check** endpoint monitoring
+- **pnpm workspace** support with preserved symlinks
+
 ```bash
 # Start all services (PostgreSQL + Server)
-docker-compose up -d
+docker compose up -d
 
 # View logs
-docker-compose logs -f server
+docker compose logs -f server
 
 # Stop all services
-docker-compose down
+docker compose down
 ```
+
+The server automatically runs `prisma migrate deploy` when the container starts, ensuring the database schema is always up to date.
 
 ### Using Docker Only
 
 ```bash
 # Build image
-docker build -t dating-app-server .
+docker build -t kasinta-server .
 
 # Run container (requires external PostgreSQL)
-docker run -p 5000:5000 \
+docker run -p 4000:4000 \
  -e DATABASE_URL="your-database-url" \
  -e JWT_SECRET="your-secret" \
- dating-app-server
+ kasinta-server
 ```
+
+Note: The container uses port 4000 by default. Database migrations will run automatically on startup.
 
 ## Implementation Notes
 

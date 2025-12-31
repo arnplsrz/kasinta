@@ -12,31 +12,29 @@ built with Next.js, Express.js, and Socket.IO**
 
 ## Screenshots
 
-> Recent redesign with improved mobile responsiveness and modern neobrutalism aesthetic
-
 <table>
   <tr>
     <td width="50%" align="center">
       <img src="./docs/images/landing-page.png" alt="Landing Page" />
       <br />
-      <em>Landing Page - Redesigned with improved mobile UX</em>
+      <em>Landing Page</em>
     </td>
     <td width="50%" align="center">
       <img src="./docs/images/discovery.png" alt="Discovery" />
       <br />
-      <em>Swipe Discovery - Redesigned interface</em>
+      <em>Swipe Discovery</em>
     </td>
   </tr>
   <tr>
     <td width="50%" align="center">
       <img src="./docs/images/match-modal.png" alt="Match Modal" />
       <br />
-      <em>Match Notification - Instant real-time updates</em>
+      <em>Match Notification</em>
     </td>
     <td width="50%" align="center">
       <img src="./docs/images/chat.png" alt="Chat Interface" />
       <br />
-      <em>Real-time Chat - Redesigned with custom scrollbars</em>
+      <em>Real-time Chat</em>
     </td>
   </tr>
 </table>
@@ -128,21 +126,21 @@ Kasinta is a full-stack dating application featuring real-time messaging, swipe-
 
 | Technology     | Version | Purpose               |
 | -------------- | ------- | --------------------- |
-| **Node.js**    | 18+     | Runtime environment   |
+| **Node.js**    | 20+     | Runtime environment   |
 | **Express.js** | 5.x     | Web framework         |
 | **TypeScript** | 5.x     | Type safety           |
 | **PostgreSQL** | 12+     | Database              |
-| **Prisma**     | 6.18.0  | ORM                   |
+| **Prisma**     | 7.1.0   | ORM                   |
 | **Socket.IO**  | 4.8.1   | WebSocket server      |
 | **JWT**        | 9.0.2   | Authentication tokens |
 | **bcryptjs**   | 2.4.3   | Password hashing      |
-| **Multer**     | 1.4.5   | File upload handling  |
+| **Multer**     | 2.0.2   | File upload handling  |
 
 ### DevOps & Tools
 
 - **pnpm** - Monorepo package manager
 - **Docker** - Containerization
-- **docker-compose** - Multi-container orchestration
+- **docker compose** - Multi-container orchestration
 - **ESLint** - Code linting
 - **ts-node-dev** - TypeScript development
 
@@ -150,7 +148,7 @@ Kasinta is a full-stack dating application featuring real-time messaging, swipe-
 
 ### Prerequisites
 
-- Node.js 18 or higher
+- Node.js 20 or higher
 - PostgreSQL 12 or higher
 - pnpm 10.x (`npm install -g pnpm`)
 
@@ -193,9 +191,8 @@ NEXT_PUBLIC_API_URL=http://localhost:4000
 4. **Setup the database**
 
 ```bash
-cd server
-pnpm prisma:generate
-pnpm prisma:migrate
+pnpm --filter server prisma:generate
+pnpm --filter server prisma:migrate
 ```
 
 5. **Start development servers**
@@ -224,27 +221,30 @@ Navigate to [http://localhost:3000](http://localhost:3000)
 
 ### Using Docker
 
-**Development (docker-compose):**
+**Development (docker compose):**
 
 ```bash
 # Start all services (PostgreSQL + Server + Client)
-docker-compose up -d
+docker compose up -d
 
 # View logs
-docker-compose logs -f
+docker compose logs -f
 
 # Stop all services
-docker-compose down
+docker compose down
 ```
 
 **Production (Fly.io):**
 
 The application includes optimized Docker configurations for production deployment on Fly.io:
 
-- **Multi-stage builds** for minimal image size
+- **Multi-stage builds** with Node.js 24 Alpine for minimal image size
+- **Automatic Prisma migrations** on container startup
 - **Non-root user** for security
 - **Health checks** for container monitoring
-- **Environment variable** configuration via Fly.io secrets
+- **Environment variable** configuration via Fly.io secrets or .env files
+
+The server uses docker-compose with .env file for environment configuration. Database migrations are applied automatically when the container starts.
 
 See `client/Dockerfile` and `server/Dockerfile` for production build configurations.
 
@@ -576,11 +576,13 @@ pnpm prisma:seed
 - Use strong JWT_SECRET (64+ characters)
 - Configure CORS_ORIGIN to production domain
 - Enable HTTPS
+- Use Node.js 20 or higher runtime
 - Use managed PostgreSQL (AWS RDS, Heroku, Fly.io Postgres, etc.)
 - Configure CDN for uploads or use cloud storage
 - Set up environment variables in deployment platform
 - Configure push notification VAPID keys for web push
 - Set up GitHub Actions workflows for automated deployment
+- Database migrations run automatically on server container startup
 
 ## Acknowledgments
 
