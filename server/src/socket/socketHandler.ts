@@ -10,6 +10,16 @@ interface AuthenticatedSocket extends Socket {
   userId?: string;
 }
 
+const backendUrl = process.env.BACKEND_URL || `http://localhost:${process.env.PORT}`;
+
+const getAbsoluteUploadUrl = (uploadPath: string | null): string | null => {
+  if (!uploadPath) {
+    return null;
+  }
+
+  return `${backendUrl}${uploadPath}`;
+};
+
 const initializeSocket = (io: Server): Map<string, string> => {
   // Store user socket mappings
   const userSockets = new Map<string, string>();
@@ -117,9 +127,7 @@ const initializeSocket = (io: Server): Map<string, string> => {
               body: content.trim(),
               matchId: match.id,
               senderId: socket.userId,
-              icon: message.sender.profilePhoto
-                ? `http://localhost:${process.env.PORT}${message.sender.profilePhoto}`
-                : null,
+              icon: getAbsoluteUploadUrl(message.sender.profilePhoto),
             });
           }
 

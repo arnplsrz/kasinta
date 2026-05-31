@@ -15,6 +15,7 @@ import userRoutes from "./src/routes/users";
 import discoveryRoutes from "./src/routes/discovery";
 import matchRoutes from "./src/routes/matches";
 import chatRoutes from "./src/routes/chat";
+import { streamUploadedFile } from "./src/services/s3Storage";
 
 // Initialize express app
 const app = express();
@@ -44,14 +45,27 @@ app.use(cookieParser());
 // Initialize Passport
 app.use(passport.initialize());
 
-// Serve uploaded files with CORS headers
-app.use("/uploads", (req: any, res: any, next: any) => {
-  res.header("Access-Control-Allow-Origin", process.env.CORS_ORIGIN);
-  res.header("Access-Control-Allow-Methods", "GET, OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Content-Type");
-  res.header("Cross-Origin-Resource-Policy", "cross-origin");
-  next();
-}, express.static("uploads"));
+// Serve private S3 uploads through the API so existing /uploads/... URLs keep working.
+app.get("/uploads/*key", async (req: Request, res: Response) => {
+  try {
+    res.header("Access-Control-Allow-Origin", process.env.CORS_ORIGIN);
+    res.header("Access-Control-Allow-Methods", "GET, OPTIONS");
+    res.header("Access-Control-Allow-Headers", "Content-Type");
+
+    const keyParam = req.params.key;
+    const key = Array.isArray(keyParam) ? keyParam.join("/") : keyParam;
+    const streamed = await streamUploadedFile(key, res);
+
+    if (!streamed && !res.headersSent) {
+      res.status(404).json({ message: "File not found" });
+    }
+  } catch (error) {
+    console.error("Get upload error:", error);
+    if (!res.headersSent) {
+      res.status(404).json({ message: "File not found" });
+    }
+  }
+});
 
 // Initialize Socket.IO handlers
 const userSockets = initializeSocket(io);

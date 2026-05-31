@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import prisma from "../config/database";
-import fs from "fs";
-import path from "path";
+import { deleteUploadedFile, uploadProfilePhoto } from "../services/s3Storage";
 
 // Get user profile
 export const getProfile = async (req: Request, res: Response): Promise<void> => {
@@ -90,22 +89,15 @@ export const uploadPhoto = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
-    // Get current user to delete old photo
+    const photoPath = await uploadProfilePhoto(req.userId!, req.file);
+
+    // Get current user to delete old photo after the new upload succeeds
     const currentUser = await prisma.user.findUnique({
       where: { id: req.userId! },
       select: { profilePhoto: true },
     });
 
-    // Delete old photo if it exists
-    if (currentUser?.profilePhoto) {
-      const oldPhotoPath = path.join(process.cwd(), currentUser.profilePhoto);
-      if (fs.existsSync(oldPhotoPath)) {
-        fs.unlinkSync(oldPhotoPath);
-      }
-    }
-
     // Update user with new photo path
-    const photoPath = `/uploads/profiles/${req.file.filename}`;
     const user = await prisma.user.update({
       where: { id: req.userId! },
       data: { profilePhoto: photoPath },
@@ -126,6 +118,12 @@ export const uploadPhoto = async (req: Request, res: Response): Promise<void> =>
         createdAt: true,
       },
     });
+
+    try {
+      await deleteUploadedFile(currentUser?.profilePhoto ?? null);
+    } catch (deleteError) {
+      console.error("Delete old photo error:", deleteError);
+    }
 
     res.json({
       message: "Photo uploaded successfully",
@@ -151,11 +149,7 @@ export const deletePhoto = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
-    // Delete physical file
-    const photoPath = path.join(process.cwd(), user.profilePhoto);
-    if (fs.existsSync(photoPath)) {
-      fs.unlinkSync(photoPath);
-    }
+    await deleteUploadedFile(user.profilePhoto);
 
     // Update user
     await prisma.user.update({

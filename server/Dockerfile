@@ -61,9 +61,6 @@ COPY --from=builder --chown=nodejs:nodejs /app/generated ./generated
 # Since pnpm uses symlinks and a virtual store, we need to copy the entire node_modules
 COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
 
-# Create uploads directory with proper permissions for profile photos
-RUN mkdir -p uploads/profiles && chown -R nodejs:nodejs uploads
-
 # Switch to non-root user
 USER nodejs
 
@@ -72,7 +69,7 @@ EXPOSE 4000
 
 # Health check for Fly.io
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
-    CMD node -e "const port = process.env.PORT || 4000; require('http').get('http://localhost:' + port, (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+    CMD node -e "const port = process.env.PORT || 4000; require('http').get('http://localhost:' + port + '/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
 # Use dumb-init to handle signals properly
 ENTRYPOINT ["dumb-init", "--"]

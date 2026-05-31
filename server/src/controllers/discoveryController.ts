@@ -2,6 +2,16 @@ import { Request, Response } from "express";
 import prisma from "../config/database";
 import { Prisma } from "../../generated/prisma_client/client";
 
+const backendUrl = process.env.BACKEND_URL || `http://localhost:${process.env.PORT}`;
+
+const getAbsoluteUploadUrl = (uploadPath: string | null): string | null => {
+  if (!uploadPath) {
+    return null;
+  }
+
+  return `${backendUrl}${uploadPath}`;
+};
+
 // Helper function to calculate distance between two coordinates (Haversine formula)
 function calculateDistance(
   lat1: number,
@@ -246,9 +256,7 @@ export const swipe = async (req: Request, res: Response): Promise<void> => {
             title: "New Match!",
             body: `You matched with ${match.user1.name}`,
             matchId: match.id,
-            badge: match.user1.profilePhoto
-              ? `http://localhost:${process.env.PORT}${match.user1.profilePhoto}`
-              : null,
+            badge: getAbsoluteUploadUrl(match.user1.profilePhoto),
           });
         }
 
@@ -270,9 +278,7 @@ export const swipe = async (req: Request, res: Response): Promise<void> => {
             title: "New Match!",
             body: `You matched with ${match.user2.name}`,
             matchId: match.id,
-            badge: match.user2.profilePhoto
-              ? `http://localhost:${process.env.PORT}${match.user2.profilePhoto}`
-              : null,
+            badge: getAbsoluteUploadUrl(match.user2.profilePhoto),
           });
         }
       }
