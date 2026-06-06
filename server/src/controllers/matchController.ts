@@ -76,7 +76,7 @@ export const getMatches = async (req: Request, res: Response): Promise<void> => 
 // Unmatch user
 export const unmatch = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { matchId } = req.params;
+    const matchId = req.params.matchId as string;
 
     // Find the match
     const match = await prisma.match.findUnique({

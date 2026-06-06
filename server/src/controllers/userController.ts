@@ -5,7 +5,7 @@ import { deleteUploadedFile, uploadProfilePhoto } from "../services/s3Storage";
 // Get user profile
 export const getProfile = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { userId } = req.params;
+    const userId = req.params.userId as string;
 
     const user = await prisma.user.findUnique({
       where: { id: userId },

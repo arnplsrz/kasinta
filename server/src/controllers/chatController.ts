@@ -4,7 +4,7 @@ import prisma from "../config/database";
 // Get chat messages between two matched users
 export const getMessages = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { matchUserId } = req.params;
+    const matchUserId = req.params.matchUserId as string;
     const { limit = 50, before } = req.query;
 
     // Verify users are matched
@@ -80,7 +80,7 @@ export const getMessages = async (req: Request, res: Response): Promise<void> =>
 // Send message (via HTTP, Socket.IO is preferred)
 export const sendMessage = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { matchUserId } = req.params;
+    const matchUserId = req.params.matchUserId as string;
     const { content } = req.body;
 
     if (!content || content.trim().length === 0) {
