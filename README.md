@@ -54,7 +54,7 @@ Kasinta is a full-stack dating application featuring real-time messaging, swipe-
 - **Dark Mode** - System-aware theme switching
 - **Photo Uploads** - Profile photo management with preview and validation
 - **Optimized Performance** - Next.js 16 App Router with React 19
-- **Production Ready** - Docker optimized for Fly.io deployment with multi-stage builds
+- **Production Ready** - Docker optimized for AWS EC2 deployment with multi-stage builds
 - **CI/CD Automation** - GitHub Actions workflows for code review and PR assistance
 
 ## Features
@@ -135,6 +135,7 @@ Kasinta is a full-stack dating application featuring real-time messaging, swipe-
 | **JWT**        | 9.0.2   | Authentication tokens |
 | **bcryptjs**   | 2.4.3   | Password hashing      |
 | **Multer**     | 2.0.2   | File upload handling  |
+| **AWS SDK**    | 3.x     | S3 profile photo storage |
 
 ### DevOps & Tools
 
@@ -234,15 +235,16 @@ docker compose logs -f
 docker compose down
 ```
 
-**Production (Fly.io):**
+**Production (AWS):**
 
-The application includes optimized Docker configurations for production deployment on Fly.io:
+The application includes optimized Docker configurations for production deployment on AWS:
 
 - **Multi-stage builds** with Node.js 24 Alpine for minimal image size
 - **Automatic Prisma migrations** on container startup
 - **Non-root user** for security
 - **Health checks** for container monitoring
-- **Environment variable** configuration via Fly.io secrets or .env files
+- **Environment variable** configuration via EC2 env files or secrets
+- **S3 profile photo storage** for stateless backend containers
 
 The server uses docker-compose with .env file for environment configuration. Database migrations are applied automatically when the container starts.
 
@@ -296,7 +298,7 @@ kasinta/
 │   │   │   └── socketHandler.ts # Socket.IO events
 │   │   └── config/
 │   │       └── database.ts # Prisma client
-│   ├── uploads/profiles/   # Profile photo storage
+│   ├── src/services/       # External services (S3 storage)
 │   ├── server.ts           # Application entry point
 │   └── package.json
 │
@@ -368,7 +370,7 @@ graph TB
         SocketHandler["Socket Handler<br/>(Real-time Events)"]
         Middleware["Middleware<br/>(Auth, CORS)"]
         Prisma["Prisma ORM"]
-        FileSystem["File System<br/>(Uploads)"]
+        ObjectStorage["S3 Object Storage<br/>(Profile Uploads)"]
     end
 
     Database[("PostgreSQL<br/>Database")]
@@ -382,7 +384,7 @@ graph TB
     WebSocket --> SocketHandler
     Routes --> Controllers
     Controllers --> Prisma
-    Controllers --> FileSystem
+    Controllers --> ObjectStorage
     SocketHandler --> Prisma
     Middleware --> Routes
     Middleware --> SocketHandler
@@ -393,6 +395,50 @@ graph TB
     style Database fill:#ffe1e1
     style Communication fill:#f0f0f0
 ```
+
+### AWS Production Architecture
+
+```mermaid
+flowchart TB
+    User["User Browser"]
+    DNS["DNS Provider<br/>kasinta.arnplsrz.com<br/>api.kasinta.arnplsrz.com"]
+    Vercel["Vercel<br/>Next.js Client"]
+
+    subgraph AWS["AWS ap-southeast-1"]
+        EIP["Elastic IP<br/>47.131.223.114"]
+        Nginx["EC2 kasinta-server<br/>Nginx reverse proxy<br/>HTTP/HTTPS + WebSocket upgrade"]
+        Docker["Docker container<br/>Express + Socket.IO<br/>Port 4000"]
+        RDS[("RDS PostgreSQL<br/>kasinta-postgres")]
+        S3[("S3 Bucket<br/>kasinta-uploads<br/>profiles/*")]
+        IAM["EC2 IAM Role<br/>S3 profile object access"]
+    end
+
+    User --> DNS
+    DNS --> Vercel
+    DNS --> EIP
+    User --> Vercel
+    Vercel -->|REST API + Socket.IO| EIP
+    EIP --> Nginx
+    Nginx --> Docker
+    Docker -->|Prisma| RDS
+    Docker -->|profile upload/read/delete| S3
+    IAM -. grants .-> Docker
+    IAM -. allows .-> S3
+```
+
+**Production DNS:**
+
+- `kasinta.arnplsrz.com` points to Vercel.
+- `api.kasinta.arnplsrz.com` points to the EC2 Elastic IP.
+- Route 53 is optional. Any DNS provider can create the API `A` record.
+
+**AWS services used:**
+
+- **EC2** runs the backend Docker container.
+- **Nginx** terminates HTTP/HTTPS and proxies REST + Socket.IO traffic to `127.0.0.1:4000`.
+- **RDS PostgreSQL** stores application data.
+- **S3** stores uploaded profile photos under `profiles/*`.
+- **IAM instance role** gives the EC2 backend S3 access without static AWS keys in production.
 
 ### Data Flow Examples
 
@@ -577,8 +623,9 @@ pnpm prisma:seed
 - Configure CORS_ORIGIN to production domain
 - Enable HTTPS
 - Use Node.js 20 or higher runtime
-- Use managed PostgreSQL (AWS RDS, Heroku, Fly.io Postgres, etc.)
-- Configure CDN for uploads or use cloud storage
+- Use managed PostgreSQL, such as AWS RDS
+- Store uploads in S3 instead of the EC2 filesystem
+- Use an EC2 IAM role for S3 access in production
 - Set up environment variables in deployment platform
 - Configure push notification VAPID keys for web push
 - Set up GitHub Actions workflows for automated deployment
