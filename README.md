@@ -187,6 +187,7 @@ MAX_FILE_SIZE=5242880
 
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:4000
+NEXT_PUBLIC_MAX_FILE_SIZE=5242880
 ```
 
 4. **Setup the database**

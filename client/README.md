@@ -125,6 +125,7 @@ Create `.env.local` in the client directory:
 
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:4000
+NEXT_PUBLIC_MAX_FILE_SIZE=5242880
 ```
 
 This configures the backend API endpoint. In production, update to your deployed backend URL (e.g., https://kasinta-backend.fly.dev).

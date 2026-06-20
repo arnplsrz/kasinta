@@ -118,6 +118,11 @@ export const userAPI = {
   },
 
   uploadPhoto: async (file: File): Promise<User> => {
+    const MAX_PHOTO_SIZE = parseInt(process.env.NEXT_PUBLIC_MAX_FILE_SIZE || "5242880"); // 5MB
+    if (file.size > MAX_PHOTO_SIZE) {
+      throw new Error(`Photo is too large. Please choose an image under ${MAX_PHOTO_SIZE / 1024 / 1024}MB.`);
+    }
+
     const formData = new FormData();
     formData.append("photo", file);
 
@@ -128,6 +133,8 @@ export const userAPI = {
         Authorization: `Bearer ${token}`,
       },
       body: formData,
+    }).catch(() => {
+      throw new Error("Couldn't reach the server. Check your connection and try again.");
     });
     return handleResponse<User>(response);
   },
