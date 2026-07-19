@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 interface KasintaLogoProps {
@@ -19,14 +20,18 @@ export function KasintaLogo({
   className,
 }: KasintaLogoProps) {
   return (
-    <img
+    <Image
       src="/kasinta-title.svg"
       alt="Kasinta"
+      width={478}
+      height={117}
       className={cn(
+        "w-auto",
         sizeClasses[size],
         variant === "inverted" && "brightness-0 invert",
         className
       )}
+      loading="eager"
     />
   );
 }
