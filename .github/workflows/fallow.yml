@@ -16,6 +16,8 @@ jobs:
   fallow:
     name: review brief
     runs-on: ubuntu-latest
+    # Dependency bumps have nothing for a static-analysis brief; skip to save minutes.
+    if: ${{ github.actor != 'dependabot[bot]' }}
     continue-on-error: true # belt-and-suspenders: never fail the check
     steps:
       - uses: actions/checkout@v4
