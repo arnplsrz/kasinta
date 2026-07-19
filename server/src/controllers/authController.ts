@@ -198,8 +198,8 @@ export const getCurrentUser = async (req: Request, res: Response): Promise<void>
   }
 };
 
-// Google OAuth callback
-export const googleCallback = async (req: Request, res: Response): Promise<void> => {
+// Shared OAuth callback handler
+const handleOAuthCallback = async (req: Request, res: Response, provider: string): Promise<void> => {
   try {
     const user = req.user as any; // Set by Passport
 
@@ -238,7 +238,17 @@ export const googleCallback = async (req: Request, res: Response): Promise<void>
     // Redirect to frontend with token
     res.redirect(`${process.env.FRONTEND_URL}/?token=${token}`);
   } catch (error) {
-    console.error("Google callback error:", error);
+    console.error(`${provider} callback error:`, error);
     res.redirect(`${process.env.FRONTEND_URL}/login?error=oauth_failed`);
   }
+};
+
+// Google OAuth callback
+export const googleCallback = async (req: Request, res: Response): Promise<void> => {
+  await handleOAuthCallback(req, res, "Google");
+};
+
+// GitHub OAuth callback
+export const githubCallback = async (req: Request, res: Response): Promise<void> => {
+  await handleOAuthCallback(req, res, "GitHub");
 };

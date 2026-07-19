@@ -29,6 +29,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { KasintaLogo } from "@/components/ui/kasinta-logo";
 import { useRouter } from "next/navigation";
 import { GoogleButton } from "@/components/ui/google-button";
+import { GithubButton } from "@/components/ui/github-button";
 
 const registerSchema = z
   .object({
@@ -314,6 +315,9 @@ export default function RegisterPage() {
                   </Field>
                   <Field>
                     <GoogleButton mode="signup" disabled={loading} />
+                  </Field>
+                  <Field>
+                    <GithubButton mode="signup" disabled={loading} />
                   </Field>
                 </FieldGroup>
                 <Field>

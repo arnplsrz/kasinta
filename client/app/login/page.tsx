@@ -20,6 +20,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { KasintaLogo } from "@/components/ui/kasinta-logo";
 import { useRouter } from "next/navigation";
 import { GoogleButton } from "@/components/ui/google-button";
+import { GithubButton } from "@/components/ui/github-button";
 
 const loginSchema = z.object({
   email: z.email("Please enter a valid email address"),
@@ -50,7 +51,7 @@ export default function LoginPage() {
       const errorMessages: Record<string, string> = {
         'access_denied': 'Login cancelled. Please try again.',
         'invalid_state': 'Invalid authentication request. Please try again.',
-        'account_conflict': 'This Google account is already linked to another user.',
+        'account_conflict': 'This account is already linked to another user.',
         'oauth_config_error': 'Authentication system error. Please try again later.',
         'oauth_service_unavailable': 'Google sign-in is temporarily unavailable. Please use email/password.',
         'oauth_failed': 'Authentication failed. Please try again.',
@@ -167,6 +168,9 @@ export default function LoginPage() {
                   </Field>
                   <Field>
                     <GoogleButton mode="signin" disabled={loading} />
+                  </Field>
+                  <Field>
+                    <GithubButton mode="signin" disabled={loading} />
                   </Field>
                 </FieldGroup>
                 <Field>

@@ -21,7 +21,8 @@ model User {
 
   // OAuth fields
   googleId     String? @unique
-  authProvider String  @default("email") // email, google, both
+  githubId     String? @unique
+  authProvider String  @default("email") // email, google, github, both
 
   // Profile
   profilePhoto String?
@@ -59,6 +60,7 @@ model User {
   @@index([latitude, longitude])
   @@index([email])
   @@index([googleId])
+  @@index([githubId])
 }
 
 model Swipe {
