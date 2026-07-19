@@ -10,10 +10,8 @@ updates:
       interval: weekly
     open-pull-requests-limit: 5
     groups:
-      client-minor-patch:
-        update-types:
-          - minor
-          - patch
+      client-deps:
+        patterns: ["*"] # one grouped PR for all client bumps, majors included
 
   # --- Server (Express/Prisma) ---
   - package-ecosystem: npm
@@ -22,10 +20,8 @@ updates:
       interval: weekly
     open-pull-requests-limit: 5
     groups:
-      server-minor-patch:
-        update-types:
-          - minor
-          - patch
+      server-deps:
+        patterns: ["*"] # one grouped PR for all server bumps, majors included
 
   # --- GitHub Actions used in the workflows above ---
   - package-ecosystem: github-actions
@@ -34,6 +30,4 @@ updates:
       interval: weekly
     groups:
       actions:
-        update-types:
-          - minor
-          - patch
+        patterns: ["*"] # one grouped PR for all GitHub Actions bumps
