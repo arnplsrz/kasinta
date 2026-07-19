@@ -1,0 +1,39 @@
+# Automated dependency update PRs — https://docs.github.com/code-security/dependabot
+# Dependabot opens PRs; your CI + CodeRabbit + fallow then run on them like any
+# other PR. Minor/patch updates are grouped so you review one PR per area, not dozens.
+version: 2
+updates:
+  # --- Client (Next.js) ---
+  - package-ecosystem: npm
+    directory: /client
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      client-minor-patch:
+        update-types:
+          - minor
+          - patch
+
+  # --- Server (Express/Prisma) ---
+  - package-ecosystem: npm
+    directory: /server
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      server-minor-patch:
+        update-types:
+          - minor
+          - patch
+
+  # --- GitHub Actions used in the workflows above ---
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        update-types:
+          - minor
+          - patch

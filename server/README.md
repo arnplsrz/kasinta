@@ -232,7 +232,105 @@ The `notification` event includes:
 
 ## Deployment
 
-### AWS Production Architecture
+### Fly.io + Neon + S3 (current)
+
+Compute runs on **Fly.io**, PostgreSQL on **Neon** (free serverless tier), and
+profile photos stay on the existing **AWS S3** bucket.
+
+```mermaid
+flowchart TB
+    Client["Vercel<br/>Next.js client<br/>kasinta.arnplsrz.com"]
+
+    subgraph Fly["Fly.io (sin)"]
+        App["Machine<br/>Express + Socket.IO<br/>0.0.0.0:4000<br/>always-on"]
+    end
+
+    Neon[("Neon PostgreSQL<br/>sslmode=require<br/>DATABASE_URL")]
+    Bucket[("AWS S3 ap-southeast-1<br/>kasinta-uploads<br/>profiles/*")]
+    IAM["IAM user<br/>S3-scoped keys"]
+
+    Client -->|REST + Socket.IO over HTTPS| App
+    App -->|Prisma / pg + SSL| Neon
+    App -->|upload/read/delete photos| Bucket
+    IAM -. static keys .-> App
+    IAM -. allows .-> Bucket
+```
+
+Layout:
+
+- **Frontend**: Vercel, `https://kasinta.arnplsrz.com`
+- **Backend**: Fly.io machine, region `sin`, `https://api.kasinta.arnplsrz.com`, Express + Socket.IO on one port (4000)
+- **Database**: Neon serverless PostgreSQL (Singapore), `sslmode=require`
+- **Uploads**: S3 bucket `kasinta-uploads`
+- **S3 auth**: static keys from a dedicated IAM **user** — Fly has no EC2 IAM role,
+  so scope an IAM user to `s3:GetObject/PutObject/DeleteObject` on
+  `arn:aws:s3:::kasinta-uploads/*` and use its access keys
+
+Configuration lives in [`fly.toml`](./fly.toml). Non-secret values (`PORT`,
+`NODE_ENV=production`, `DATABASE_SSL=true`) are set there under `[env]`; everything
+else from [`.env.example`](./.env.example) is set as a Fly secret.
+
+**1. Create the Neon database**
+
+Create a Neon project in the Singapore region and copy its connection string
+(include `?sslmode=require`). `DATABASE_SSL=true` in `fly.toml` enables SSL in the
+`pg` pool to match.
+
+**2. Launch without Fly Postgres or Tigris**
+
+```bash
+cd server
+
+# Uses the committed fly.toml. Decline the "set up a Postgres database?" prompt.
+fly launch --no-object-storage --no-deploy --copy-config
+```
+
+**3. Set secrets** (values that must not live in `fly.toml`)
+
+```bash
+fly secrets set \
+  DATABASE_URL="postgresql://<user>:<pw>@<neon-host>/<db>?sslmode=require" \
+  JWT_SECRET="<strong-secret>" \
+  CORS_ORIGIN="https://kasinta.arnplsrz.com" \
+  FRONTEND_URL="https://kasinta.arnplsrz.com" \
+  BACKEND_URL="https://api.kasinta.arnplsrz.com" \
+  AWS_REGION="ap-southeast-1" \
+  S3_BUCKET_NAME="kasinta-uploads" \
+  AWS_ACCESS_KEY_ID="<iam-user-key>" \
+  AWS_SECRET_ACCESS_KEY="<iam-user-secret>" \
+  GOOGLE_CLIENT_ID="<google-client-id>" \
+  GOOGLE_CLIENT_SECRET="<google-client-secret>" \
+  GOOGLE_CALLBACK_URL="https://api.kasinta.arnplsrz.com/api/auth/google/callback" \
+  --app kasinta-server
+```
+
+> Inline arguments expose secrets via shell history and process listings. For
+> real values, put them in an untracked, `chmod 600` env file and import instead:
+>
+> ```bash
+> fly secrets import < .env.production   # KEY=VALUE per line; never commit this file
+> ```
+
+**4. Deploy and verify**
+
+```bash
+fly deploy   # Dockerfile CMD runs `prisma migrate deploy` against Neon on boot
+fly status   # expect 1 running machine in sin
+fly logs     # confirm migrations applied with no SSL errors
+curl -i https://api.kasinta.arnplsrz.com/api/health
+```
+
+> The secrets and health check above assume the custom domain
+> `api.kasinta.arnplsrz.com`. Provision it **before** step 3: add the Fly
+> certificate (`fly certs add api.kasinta.arnplsrz.com`), point a Cloudflare
+> `CNAME` at `kasinta-server.fly.dev` (DNS-only), and wait for
+> `fly certs show api.kasinta.arnplsrz.com` to report *issued*. To skip the custom
+> domain for now, use `https://kasinta-server.fly.dev` for `BACKEND_URL`,
+> `GOOGLE_CALLBACK_URL`, and the health-check URL, then switch once it is live.
+
+### AWS Production Architecture (legacy)
+
+> **Superseded by the Fly.io + Neon + S3 setup above.** The app now runs on Fly.io
 
 ```mermaid
 flowchart TB
@@ -323,7 +421,9 @@ docker run -p 4000:4000 \
 
 Note: The container uses port 4000 by default. Database migrations will run automatically on startup.
 
-### EC2 + Docker + Nginx
+### EC2 + Docker + Nginx (legacy)
+
+> The steps below apply only to the legacy EC2 path.
 
 Build and run the backend container on EC2:
 

@@ -142,6 +142,10 @@ Kasinta is a full-stack dating application featuring real-time messaging, swipe-
 - **pnpm** - Monorepo package manager
 - **Docker** - Containerization
 - **docker compose** - Multi-container orchestration
+- **GitHub Actions** - CI (lint/build) and Fly.io deploy
+- **Fly.io / Vercel** - Server and client hosting
+- **CodeRabbit / fallow** - PR review and static analysis
+- **Dependabot** - Automated dependency updates
 - **ESLint** - Code linting
 - **ts-node-dev** - TypeScript development
 
@@ -563,8 +567,50 @@ sequenceDiagram
 
 **CI/CD**
 
-- Added GitHub Actions workflow for automated code review
-- Integrated Claude PR Assistant for pull request analysis
+- Added CI build/lint gate, CodeRabbit reviews, and non-blocking fallow checks on PRs
+- Auto-deploy: server → Fly.io, client → Vercel; Dependabot for weekly updates
+
+## CI/CD
+
+The monorepo uses GitHub Actions plus two hosted apps. **CI is the only gate** —
+CodeRabbit and fallow comment but never block a merge.
+
+| Trigger                        | What runs                                   | Blocks merge?              |
+| ------------------------------ | ------------------------------------------- | -------------------------- |
+| Open / update a PR             | CI (client + server), CodeRabbit, fallow    | CI: yes¹ · others: no      |
+| Push to `main` (server paths)  | CI + **Fly.io deploy**                       | —                          |
+| Push to `main` (client paths)  | CI + **Vercel deploy** (native integration) | —                          |
+| Weekly (Dependabot)            | Dependency PRs → re-run CI / CodeRabbit / fallow | —                     |
+
+¹ CI blocks only after you mark its checks **required** in branch protection (see below).
+
+### Workflows & config
+
+| File                                    | Purpose                                                             |
+| --------------------------------------- | ------------------------------------------------------------------ |
+| `.github/workflows/ci.yml`              | Lint + build the client and typecheck + build the server (the gate)|
+| `.github/workflows/deploy-server.yml`   | `flyctl deploy` the server on push to `main` (server paths only)    |
+| `.github/workflows/fallow.yml`          | Non-blocking fallow brief on PRs → run's Summary tab               |
+| `.github/dependabot.yml`                | Weekly grouped dependency PRs for `/client`, `/server`, Actions    |
+| `.coderabbit.yaml`                      | CodeRabbit PR-review config (runs as a GitHub App)                 |
+
+The client deploys through **Vercel's native Git integration** (with per-PR preview
+URLs), so there is intentionally no client deploy workflow here.
+
+### One-time setup
+
+1. **Fly deploy token** — create a deploy-scoped token and add it as the
+   `FLY_API_TOKEN` repo secret (GitHub → Settings → Secrets and variables → Actions):
+
+   ```bash
+   fly tokens create deploy -x 8760h
+   ```
+
+2. **CodeRabbit** — install the GitHub App from [coderabbit.ai](https://coderabbit.ai)
+   and grant it this repo. No Actions minutes are used; `.coderabbit.yaml` configures it.
+
+3. **Required checks** — under Settings → Branches, add a protection rule for `main`
+   requiring the **`client`** and **`server`** CI checks to pass before merge.
 
 ## Development
 

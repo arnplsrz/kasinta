@@ -1,0 +1,38 @@
+name: fallow (non-blocking)
+
+# Static-analysis orientation brief for changed code across the whole monorepo
+# (client/ + server/). Purely informational — it NEVER blocks a PR:
+#   - `fallow review --brief` always exits 0 by design, and
+#   - continue-on-error keeps the job green even if the tool itself errors.
+# The brief is written to the PR's job summary (Actions run → Summary tab).
+
+on:
+  pull_request: # runs on every PR — never on pushes/merges
+
+permissions:
+  contents: read
+
+jobs:
+  fallow:
+    name: review brief
+    runs-on: ubuntu-latest
+    continue-on-error: true # belt-and-suspenders: never fail the check
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history so fallow can diff against the base branch
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: fallow review brief
+        # base_ref goes through the environment, never interpolated into the
+        # script body, to avoid shell injection from a crafted branch name.
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          npx --yes fallow review --brief \
+            --base "origin/${BASE_REF}" \
+            --format markdown >> "$GITHUB_STEP_SUMMARY" || true
