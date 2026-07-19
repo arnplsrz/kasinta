@@ -146,6 +146,14 @@ export const userAPI = {
     });
     return handleResponse<User>(response);
   },
+
+  deleteAccount: async (): Promise<void> => {
+    const response = await fetch(`${API_BASE_URL}/api/users/account`, {
+      method: "DELETE",
+      headers: createHeaders(),
+    });
+    return handleResponse<void>(response);
+  },
 };
 
 // ===== DISCOVERY API =====

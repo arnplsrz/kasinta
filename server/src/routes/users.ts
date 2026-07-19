@@ -12,6 +12,7 @@ router.use(auth);
 router.get("/:userId", userController.getProfile);
 router.put("/profile", userController.updateProfile);
 router.put("/preferences", userController.updatePreferences);
+router.delete("/account", userController.deleteAccount);
 
 // Photo routes
 router.post("/photo", upload.single("photo"), userController.uploadPhoto);

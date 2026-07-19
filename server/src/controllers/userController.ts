@@ -164,6 +164,31 @@ export const deletePhoto = async (req: Request, res: Response): Promise<void> =>
   }
 };
 
+// Delete account
+export const deleteAccount = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.userId! },
+      select: { profilePhoto: true },
+    });
+
+    await prisma.user.delete({ where: { id: req.userId! } });
+
+    if (user?.profilePhoto) {
+      try {
+        await deleteUploadedFile(user.profilePhoto);
+      } catch (deleteError) {
+        console.error("Delete profile photo error:", deleteError);
+      }
+    }
+
+    res.json({ message: "Account deleted successfully" });
+  } catch (error) {
+    console.error("Delete account error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 // Update preferences
 export const updatePreferences = async (req: Request, res: Response): Promise<void> => {
   try {

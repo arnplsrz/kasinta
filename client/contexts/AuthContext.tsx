@@ -8,7 +8,7 @@ import {
   ReactNode,
 } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { authAPI } from "@/lib/api";
+import { authAPI, userAPI } from "@/lib/api";
 import type { User } from "@/lib/types";
 
 interface AuthContextType {
@@ -24,6 +24,7 @@ interface AuthContextType {
     interestedIn?: string;
   }) => Promise<void>;
   logout: () => Promise<void>;
+  deleteAccount: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
 
@@ -131,6 +132,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const deleteAccount = async () => {
+    // Unlike logout, a failed request must not clear the session —
+    // the account still exists on the server.
+    await userAPI.deleteAccount();
+    localStorage.removeItem("token");
+    setUser(null);
+    router.push("/login");
+  };
+
   const refreshUser = async () => {
     try {
       const userData = await authAPI.getMe();
@@ -148,6 +158,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         login,
         register,
         logout,
+        deleteAccount,
         refreshUser,
       }}
     >

@@ -20,6 +20,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -57,9 +68,10 @@ interface ProfileDialogProps {
 }
 
 export function ProfileDialog({ open, onOpenChange }: ProfileDialogProps) {
-  const { user, refreshUser } = useAuth();
+  const { user, refreshUser, deleteAccount } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const {
     register,
@@ -173,6 +185,18 @@ export function ProfileDialog({ open, onOpenChange }: ProfileDialogProps) {
       toast.error(
         err instanceof Error ? err.message : "Failed to update profile"
       );
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    setDeleting(true);
+    try {
+      await deleteAccount();
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Failed to delete account"
+      );
+      setDeleting(false);
     }
   };
 
@@ -453,6 +477,50 @@ export function ProfileDialog({ open, onOpenChange }: ProfileDialogProps) {
             </Button>
           </div>
         </form>
+
+        <div className="mt-2 pt-6 border-t-2 border-border">
+          <h3 className="text-lg font-heading text-foreground mb-2">
+            Danger Zone
+          </h3>
+          <p className="text-sm font-base text-foreground/70 mb-4">
+            Deleting your account is permanent and cannot be undone. All your
+            matches, messages, and data will be removed.
+          </p>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                type="button"
+                variant="neutral"
+                className="text-red-600 hover:text-red-600"
+              >
+                Delete Account
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  Are you sure you want to delete your account?
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete
+                  your account and remove all your matches, messages, and
+                  data.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel disabled={deleting}>
+                  Cancel
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleDeleteAccount}
+                  disabled={deleting}
+                >
+                  {deleting ? "Deleting..." : "Delete Account"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
       </DialogContent>
     </Dialog>
   );
