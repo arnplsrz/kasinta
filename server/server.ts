@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-dotenv.config();
+dotenv.config({ quiet: true });
 
 import express, { Request, Response, NextFunction } from "express";
 import http from "http";
