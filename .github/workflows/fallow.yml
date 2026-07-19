@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: true # belt-and-suspenders: never fail the check
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0 # full history so fallow can diff against the base branch
           persist-credentials: false
