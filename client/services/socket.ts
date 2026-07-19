@@ -18,19 +18,7 @@ class SocketService {
 
   // Set the socket instance from SocketContext
   setSocket(socket: Socket | null) {
-    // console.log("Setting socket instance:", socket ? "connected" : "null");
     this.socket = socket;
-
-    if (socket) {
-      // Add debug listeners
-      socket.on("userStatusChange", (data) => {
-        // console.log("Received userStatusChange:", data);
-      });
-
-      socket.on("userTyping", (data) => {
-        // console.log("Received userTyping:", data);
-      });
-    }
   }
 
   getSocket() {
@@ -39,7 +27,6 @@ class SocketService {
 
   disconnect() {
     // Socket disconnection is now handled by SocketContext
-    // console.log("Socket service disconnect called");
     this.listeners.clear();
   }
 
@@ -70,7 +57,6 @@ class SocketService {
   // Typing events
   sendTyping(receiverId: string, isTyping: boolean) {
     if (this.socket) {
-      // console.log("Sending typing event:", { receiverId, isTyping });
       this.socket.emit("typing", { receiverId, isTyping });
     } else {
       console.warn("Cannot send typing - no socket instance");

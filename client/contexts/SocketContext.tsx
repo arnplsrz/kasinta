@@ -61,19 +61,16 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
 
     // Authenticate socket
     newSocket.on("connect", () => {
-      console.log("Socket connected, emitting authenticate");
       newSocket.emit("authenticate", token);
     });
 
     newSocket.on("authenticated", () => {
-      console.log("Socket authenticated successfully");
       setConnected(true);
       // Set the socket instance in the socket service
       socketService.setSocket(newSocket);
     });
 
     newSocket.on("disconnect", (reason) => {
-      console.log("Socket disconnected:", reason);
       setConnected(false);
     });
 

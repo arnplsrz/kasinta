@@ -58,6 +58,35 @@ export function AppSidebar({
     selectedMatchIdRef.current = selectedMatchId || null;
   }, [selectedMatchId]);
 
+  // Sync profile dialog open state with the #profile route
+  useEffect(() => {
+    const syncFromHash = () => {
+      setProfileDialogOpen(window.location.hash === "#profile");
+    };
+
+    syncFromHash();
+    window.addEventListener("hashchange", syncFromHash);
+
+    return () => {
+      window.removeEventListener("hashchange", syncFromHash);
+    };
+  }, []);
+
+  const openProfileDialog = () => {
+    window.location.hash = "profile";
+  };
+
+  const closeProfileDialog = () => {
+    if (window.location.hash === "#profile") {
+      window.history.replaceState(
+        {},
+        "",
+        window.location.pathname + window.location.search
+      );
+    }
+    setProfileDialogOpen(false);
+  };
+
   useEffect(() => {
     loadMatches();
   }, []);
@@ -220,7 +249,7 @@ export function AppSidebar({
             <DropdownMenuLabel>My Account</DropdownMenuLabel>
             <DropdownMenuSeparator className="text-main-foreground" />
             <DropdownMenuGroup>
-              <DropdownMenuItem onClick={() => setProfileDialogOpen(true)}>
+              <DropdownMenuItem onClick={openProfileDialog}>
                 <div className="w-full flex gap-2 items-center">
                   <User />
                   <span>Profile</span>
@@ -365,7 +394,13 @@ export function AppSidebar({
       </SidebarContent>
       <ProfileDialog
         open={profileDialogOpen}
-        onOpenChange={setProfileDialogOpen}
+        onOpenChange={(open) => {
+          if (open) {
+            openProfileDialog();
+          } else {
+            closeProfileDialog();
+          }
+        }}
       />
     </Sidebar>
   );

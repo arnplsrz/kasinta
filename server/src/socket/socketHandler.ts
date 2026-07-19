@@ -25,8 +25,6 @@ const initializeSocket = (io: Server): Map<string, string> => {
   const userSockets = new Map<string, string>();
 
   io.on("connection", (socket: AuthenticatedSocket) => {
-    console.log("New client connected:", socket.id);
-
     // Authenticate socket connection
     socket.on("authenticate", async (token: string) => {
       try {
@@ -53,7 +51,6 @@ const initializeSocket = (io: Server): Map<string, string> => {
         });
 
         socket.emit("authenticated", { userId: decoded.userId });
-        console.log("User authenticated:", decoded.userId);
       } catch (error) {
         console.error("Socket authentication error:", error);
         socket.emit("authError", { message: "Authentication failed" });
@@ -182,8 +179,6 @@ const initializeSocket = (io: Server): Map<string, string> => {
 
     // Handle disconnection
     socket.on("disconnect", async () => {
-      console.log("Client disconnected:", socket.id);
-
       if (socket.userId) {
         const userId = socket.userId;
         userSockets.delete(userId);

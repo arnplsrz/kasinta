@@ -2,19 +2,15 @@
 // Handles notification display and click events
 
 self.addEventListener("install", (event) => {
-  console.log("Service Worker: Installed");
   self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
-  console.log("Service Worker: Activated");
   event.waitUntil(clients.claim());
 });
 
 // Handle notification click events
 self.addEventListener("notificationclick", (event) => {
-  console.log("Notification clicked:", event.notification.tag);
-
   event.notification.close();
 
   // Get the notification data
