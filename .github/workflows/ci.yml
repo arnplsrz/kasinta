@@ -1,0 +1,72 @@
+name: CI
+
+# Verifies the code actually builds/lints. Unlike CodeRabbit and fallow (which
+# comment but never block), this is the real gate — mark it "required" in the
+# branch protection rules for main.
+#
+# Runs on PRs, and on pushes to main so the deployed branch stays green.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Cancel superseded runs on the same branch/PR to save minutes.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  client:
+    name: client (lint + build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.19.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm --filter client lint
+
+      - name: Build client
+        run: pnpm --filter client build
+        env:
+          # Public build-time vars — real values live in Vercel; CI just needs
+          # them defined so the Next.js build resolves them.
+          NEXT_PUBLIC_API_URL: http://localhost:4000
+          NEXT_PUBLIC_MAX_FILE_SIZE: "5242880"
+
+  server:
+    name: server (typecheck + build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.19.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Prisma client must be generated before tsc (mirrors the Dockerfile).
+      # prisma.config.ts reads DATABASE_URL at load time, so give it a dummy.
+      - name: Generate Prisma client
+        run: pnpm --filter server prisma:generate
+        env:
+          DATABASE_URL: postgresql://user:pass@localhost:5432/db?schema=public
+
+      - name: Build server (tsc)
+        run: pnpm --filter server build

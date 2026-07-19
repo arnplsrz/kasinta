@@ -1,0 +1,41 @@
+name: Deploy Server (Fly.io)
+
+# Auto-deploys the Express/Socket.IO server to Fly.io on push to main.
+# The client/ (Next.js) deploys separately via Vercel's native Git integration —
+# no workflow is needed for it, and adding one here would double-deploy.
+#
+# Requires a repo secret FLY_API_TOKEN:
+#   fly tokens create deploy -x 999999h   # then add the value in GitHub → Settings → Secrets → Actions
+
+on:
+  push:
+    branches: [main]
+    # Only redeploy when something that affects the server image changes.
+    paths:
+      - "server/**"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - ".github/workflows/deploy-server.yml"
+  workflow_dispatch: {} # allow manual "Run workflow" from the Actions tab
+
+# Never run two deploys at once; let an in-flight deploy finish.
+concurrency:
+  group: deploy-server
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: fly deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+
+      # Runs from server/ so it picks up server/fly.toml + server/Dockerfile,
+      # matching how you deploy locally. --remote-only builds on Fly's builders.
+      - name: Deploy to Fly.io
+        working-directory: server
+        run: flyctl deploy --remote-only
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

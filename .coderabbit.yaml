@@ -1,0 +1,37 @@
+# CodeRabbit config — https://docs.coderabbit.ai/reference/configuration
+# CodeRabbit runs as a GitHub App (install from https://coderabbit.ai), not as a
+# GitHub Actions workflow, so it consumes no Actions minutes. This file just tunes
+# how it reviews PRs.
+language: en-US
+
+reviews:
+  profile: chill # less nitpicky; good for a solo/learning project
+  request_changes_workflow: false # comments only, never blocks merge
+  high_level_summary: true
+  review_status: true
+  poem: false
+  # Reviews run on pull requests only (CodeRabbit never reviews direct pushes).
+  auto_review:
+    enabled: true
+    drafts: false
+  # Skip generated / vendored / binary files.
+  path_filters:
+    - "!**/pnpm-lock.yaml"
+    - "!**/*.bin"
+    - "!.fallow/**"
+    - "!server/generated/**"
+  # Give the reviewer per-area context for this fullstack monorepo.
+  path_instructions:
+    - path: "server/**"
+      instructions: >
+        Express 5 + Prisma 7 (pg adapter) + Socket.IO backend deployed to Fly.io.
+        Flag missing JWT/auth checks on routes, unvalidated request input, N+1
+        Prisma queries, and secrets that should not be logged.
+    - path: "client/**"
+      instructions: >
+        Next.js 16 App Router + React 19 client deployed to Vercel. Flag
+        client/server component misuse, missing loading/error states, and
+        unhandled fetch/socket errors.
+
+chat:
+  auto_reply: true
