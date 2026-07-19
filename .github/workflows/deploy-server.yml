@@ -29,8 +29,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
-      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - uses: superfly/flyctl-actions/setup-flyctl@v1
 
       # Runs from server/ so it picks up server/fly.toml + server/Dockerfile,
       # matching how you deploy locally. --remote-only builds on Fly's builders.

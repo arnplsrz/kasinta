@@ -86,32 +86,6 @@ export const usePushNotifications = () => {
     };
   }, [isSupported]);
 
-  // Request notification permission
-  const requestPermission =
-    useCallback(async (): Promise<NotificationPermission> => {
-      if (!isSupported) {
-        console.warn("Notifications are not supported");
-        return "denied";
-      }
-
-      try {
-        const result = await Notification.requestPermission();
-        setPermission(result as NotificationPermission);
-
-        // Process any queued notifications if permission was granted
-        if (result === "granted" && notificationQueueRef.current.length > 0) {
-          const queue = [...notificationQueueRef.current];
-          notificationQueueRef.current = [];
-          queue.forEach((data) => showNotification(data));
-        }
-
-        return result as NotificationPermission;
-      } catch (error) {
-        console.error("Error requesting notification permission:", error);
-        return "denied";
-      }
-    }, [isSupported]);
-
   // Show notification
   const showNotification = useCallback(
     async (data: NotificationData) => {
@@ -171,6 +145,32 @@ export const usePushNotifications = () => {
     },
     [isSupported, permission, registration]
   );
+
+  // Request notification permission
+  const requestPermission =
+    useCallback(async (): Promise<NotificationPermission> => {
+      if (!isSupported) {
+        console.warn("Notifications are not supported");
+        return "denied";
+      }
+
+      try {
+        const result = await Notification.requestPermission();
+        setPermission(result as NotificationPermission);
+
+        // Process any queued notifications if permission was granted
+        if (result === "granted" && notificationQueueRef.current.length > 0) {
+          const queue = [...notificationQueueRef.current];
+          notificationQueueRef.current = [];
+          queue.forEach((data) => showNotification(data));
+        }
+
+        return result as NotificationPermission;
+      } catch (error) {
+        console.error("Error requesting notification permission:", error);
+        return "denied";
+      }
+    }, [isSupported, showNotification]);
 
   return {
     isSupported,

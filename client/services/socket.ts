@@ -3,9 +3,13 @@ import { io, Socket } from "socket.io-client";
 
 const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL;
 
+// Event listeners are passed straight to socket.io and never invoked directly
+// here, so a bottom-typed signature accepts any typed callback without `any`.
+type SocketListener = (...args: never[]) => void;
+
 class SocketService {
   private socket: Socket | null;
-  private listeners: Map<string, any[]>;
+  private listeners: Map<string, SocketListener[]>;
 
   constructor() {
     this.socket = null;
@@ -98,9 +102,9 @@ class SocketService {
   }
 
   // Generic event handling
-  on(event: string, callback: any) {
+  on(event: string, callback: SocketListener) {
     if (this.socket) {
-      this.socket.on(event, callback);
+      this.socket.on(event, callback as (...args: unknown[]) => void);
 
       if (!this.listeners.has(event)) {
         this.listeners.set(event, []);
@@ -109,9 +113,9 @@ class SocketService {
     }
   }
 
-  off(event: string, callback: any) {
+  off(event: string, callback: SocketListener) {
     if (this.socket) {
-      this.socket.off(event, callback);
+      this.socket.off(event, callback as (...args: unknown[]) => void);
 
       if (this.listeners.has(event)) {
         const callbacks = this.listeners.get(event);

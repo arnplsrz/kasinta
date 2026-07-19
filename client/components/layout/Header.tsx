@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
 import { Heart, MessageCircle, User, Compass, LogOut } from "lucide-react";
 import { chatAPI } from "@/lib/api";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { KasintaLogo } from "@/components/ui/kasinta-logo";
 
@@ -12,20 +12,20 @@ export default function Header() {
   const { user, logout } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
 
-  useEffect(() => {
-    if (user) {
-      loadUnreadCount();
-    }
-  }, [user]);
-
-  const loadUnreadCount = async () => {
+  const loadUnreadCount = useCallback(async () => {
     try {
       const data = await chatAPI.getUnreadCount();
       setUnreadCount(data.unreadCount);
     } catch (error) {
       console.error("Failed to load unread count:", error);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      loadUnreadCount();
+    }
+  }, [user, loadUnreadCount]);
 
   if (!user) return null;
 

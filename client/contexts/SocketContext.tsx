@@ -35,12 +35,7 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     if (!user) {
-      // Disconnect socket if user logs out
-      if (socket) {
-        socket.disconnect();
-        setSocket(null);
-        setConnected(false);
-      }
+      // Logged out: the previous run's cleanup disconnects and resets state.
       socketService.setSocket(null);
       socketService.disconnect();
       return;
@@ -92,8 +87,11 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
 
     setSocket(newSocket);
 
-    // Cleanup on unmount
+    // Disconnect and reset when the user changes or the provider unmounts.
     return () => {
+      newSocket.disconnect();
+      setSocket(null);
+      setConnected(false);
       socketService.setSocket(null);
       socketService.disconnect();
     };

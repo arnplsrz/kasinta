@@ -304,6 +304,13 @@ fly secrets set \
   --app kasinta-server
 ```
 
+> Inline arguments expose secrets via shell history and process listings. For
+> real values, put them in an untracked, `chmod 600` env file and import instead:
+>
+> ```bash
+> fly secrets import < .env.production   # KEY=VALUE per line; never commit this file
+> ```
+
 **4. Deploy and verify**
 
 ```bash
@@ -313,10 +320,13 @@ fly logs     # confirm migrations applied with no SSL errors
 curl -i https://api.kasinta.arnplsrz.com/api/health
 ```
 
-Once a custom domain is wired, update `BACKEND_URL` and `GOOGLE_CALLBACK_URL` to
-`https://api.kasinta.arnplsrz.com`, then add the Fly certificate
-(`fly certs add api.kasinta.arnplsrz.com`) and point a Cloudflare `CNAME` at
-`kasinta-server.fly.dev`.
+> The secrets and health check above assume the custom domain
+> `api.kasinta.arnplsrz.com`. Provision it **before** step 3: add the Fly
+> certificate (`fly certs add api.kasinta.arnplsrz.com`), point a Cloudflare
+> `CNAME` at `kasinta-server.fly.dev` (DNS-only), and wait for
+> `fly certs show api.kasinta.arnplsrz.com` to report *issued*. To skip the custom
+> domain for now, use `https://kasinta-server.fly.dev` for `BACKEND_URL`,
+> `GOOGLE_CALLBACK_URL`, and the health-check URL, then switch once it is live.
 
 ### AWS Production Architecture (legacy)
 

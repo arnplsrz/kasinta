@@ -21,13 +21,18 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0 # full history so fallow can diff against the base branch
+          persist-credentials: false
 
       - uses: actions/setup-node@v4
         with:
           node-version: 24
 
       - name: fallow review brief
+        # base_ref goes through the environment, never interpolated into the
+        # script body, to avoid shell injection from a crafted branch name.
+        env:
+          BASE_REF: ${{ github.base_ref }}
         run: |
           npx --yes fallow review --brief \
-            --base "origin/${{ github.base_ref }}" \
+            --base "origin/${BASE_REF}" \
             --format markdown >> "$GITHUB_STEP_SUMMARY" || true

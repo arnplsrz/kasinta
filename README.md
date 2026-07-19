@@ -591,7 +591,6 @@ CodeRabbit and fallow comment but never block a merge.
 | `.github/workflows/ci.yml`              | Lint + build the client and typecheck + build the server (the gate)|
 | `.github/workflows/deploy-server.yml`   | `flyctl deploy` the server on push to `main` (server paths only)    |
 | `.github/workflows/fallow.yml`          | Non-blocking fallow brief on PRs → run's Summary tab               |
-| `.github/workflows/claude.yml`          | Interactive `@claude` bot on issues / PR comments                  |
 | `.github/dependabot.yml`                | Weekly grouped dependency PRs for `/client`, `/server`, Actions    |
 | `.coderabbit.yaml`                      | CodeRabbit PR-review config (runs as a GitHub App)                 |
 

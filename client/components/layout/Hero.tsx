@@ -363,7 +363,7 @@ export default function Hero() {
                               {testimonial.names}
                             </h3>
                             <p className="text-xs md:text-sm font-base text-foreground line-clamp-4">
-                              "{testimonial.testimonial}"
+                              &ldquo;{testimonial.testimonial}&rdquo;
                             </p>
                           </div>
                         </div>
