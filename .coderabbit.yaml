@@ -7,8 +7,9 @@ language: en-US
 reviews:
   profile: chill # less nitpicky; good for a solo/learning project
   request_changes_workflow: false # comments only, never blocks merge
-  high_level_summary: true
-  review_status: true
+  high_level_summary: false
+  review_status: false
+  collapse_walkthrough: true
   poem: false
   # Reviews run on pull requests only (CodeRabbit never reviews direct pushes).
   auto_review:

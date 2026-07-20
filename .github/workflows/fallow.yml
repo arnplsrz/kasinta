@@ -4,13 +4,14 @@ name: fallow (non-blocking)
 # (client/ + server/). Purely informational — it NEVER blocks a PR:
 #   - `fallow review --brief` always exits 0 by design, and
 #   - continue-on-error keeps the job green even if the tool itself errors.
-# The brief is written to the PR's job summary (Actions run → Summary tab).
+# The brief is posted as a single PR comment, updated in place on every push.
 
 on:
   pull_request: # runs on every PR — never on pushes/merges
 
 permissions:
   contents: read
+  pull-requests: write
 
 jobs:
   fallow:
@@ -34,7 +35,11 @@ jobs:
         # script body, to avoid shell injection from a crafted branch name.
         env:
           BASE_REF: ${{ github.base_ref }}
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
         run: |
           npx --yes fallow review --brief \
             --base "origin/${BASE_REF}" \
-            --format markdown >> "$GITHUB_STEP_SUMMARY" || true
+            --format markdown > brief.md || true
+          gh pr comment "$PR" --body-file brief.md \
+            --edit-last --create-if-none || true
