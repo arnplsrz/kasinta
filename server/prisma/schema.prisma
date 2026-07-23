@@ -2,8 +2,13 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma_client"
+  provider            = "prisma-client"
+  output              = "../generated/prisma_client"
+  // Build compiles with tsc `module: commonjs`, so the generated client must be
+  // CJS too. Without these, Prisma 7's default ESM output crashes at runtime
+  // ("exports is not defined in ES module scope").
+  moduleFormat        = "cjs"
+  importFileExtension = "js"
 }
 
 datasource db {
