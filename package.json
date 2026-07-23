@@ -2,6 +2,7 @@
   "name": "kasinta",
   "version": "1.0.0",
   "private": true,
+  "packageManager": "pnpm@10.19.0",
   "scripts": {
     "dev": "pnpm --parallel -r dev",
     "dev:client": "pnpm --filter client dev",
