@@ -1,27 +1,30 @@
 # Automated dependency update PRs — https://docs.github.com/code-security/dependabot
 # Dependabot opens PRs; your CI + CodeRabbit + fallow then run on them like any
-# other PR. Minor/patch updates are grouped so you review one PR per area, not dozens.
+# other PR. Minor/patch updates are grouped so you review one PR, not dozens.
 version: 2
 updates:
-  # --- Client (Next.js) ---
+  # --- JS/TS workspace (client + server) ---
+  # Anchored at the repo root so Dependabot updates the shared pnpm-lock.yaml
+  # in the same PR. Pointing at /client or /server only touched their
+  # package.json and left the root lockfile stale, which failed CI's
+  # `pnpm install --frozen-lockfile`.
   - package-ecosystem: npm
-    directory: /client
+    directory: /
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
     groups:
-      client-deps:
-        patterns: ["*"] # one grouped PR for all client bumps, majors included
-
-  # --- Server (Express/Prisma) ---
-  - package-ecosystem: npm
-    directory: /server
-    schedule:
-      interval: weekly
-    open-pull-requests-limit: 5
-    groups:
-      server-deps:
-        patterns: ["*"] # one grouped PR for all server bumps, majors included
+      npm-deps:
+        patterns: ["*"] # one grouped PR for all client+server bumps
+    ignore:
+      # Breaking majors that need a deliberate code/config migration, not an
+      # automated bump. Remove an entry when you're ready to migrate that tool.
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"] # TS7 removes baseUrl/moduleResolution=node
+      - dependency-name: eslint
+        update-types: ["version-update:semver-major"] # v10 needs flat-config migration
+      - dependency-name: lucide-react
+        update-types: ["version-update:semver-major"] # v1 dropped brand icons (Github)
 
   # --- GitHub Actions used in the workflows above ---
   - package-ecosystem: github-actions
