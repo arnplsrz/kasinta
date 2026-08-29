@@ -45,7 +45,7 @@ Kasinta is a full-stack dating application featuring real-time messaging, swipe-
 
 ### Key Highlights
 
-- **Secure Authentication** - JWT-based auth with bcrypt password hashing
+- **Secure Authentication** - JWT-based auth with bcrypt password hashing, plus Google OAuth login
 - **Real-time Chat** - Socket.IO powered instant messaging with typing indicators
 - **Smart Matching** - Swipe-based discovery with filters (age, distance, gender)
 - **Push Notifications** - Browser-based push notifications for matches and messages
@@ -54,7 +54,7 @@ Kasinta is a full-stack dating application featuring real-time messaging, swipe-
 - **Dark Mode** - System-aware theme switching
 - **Photo Uploads** - Profile photo management with preview and validation
 - **Optimized Performance** - Next.js 16 App Router with React 19
-- **Production Ready** - Docker optimized for AWS EC2 deployment with multi-stage builds
+- **Production Ready** - Docker optimized for Fly.io deployment with multi-stage builds
 - **CI/CD Automation** - GitHub Actions workflows for code review and PR assistance
 
 ## Features
@@ -111,15 +111,15 @@ Kasinta is a full-stack dating application featuring real-time messaging, swipe-
 
 | Technology           | Version | Purpose                      |
 | -------------------- | ------- | ---------------------------- |
-| **Next.js**          | 16.0.0  | React framework (App Router) |
-| **React**            | 19.2.0  | UI library                   |
-| **TypeScript**       | 5.x     | Type safety                  |
+| **Next.js**          | 16.3.0  | React framework (App Router) |
+| **React**            | 19.2.8  | UI library                   |
+| **TypeScript**       | 5.9.x   | Type safety                  |
 | **TailwindCSS**      | 4.x     | Styling system               |
-| **Socket.IO Client** | 4.8.1   | Real-time communication      |
+| **Socket.IO Client** | 4.8.3   | Real-time communication      |
 | **shadcn/ui**        | Latest  | UI component library         |
-| **React Hook Form**  | 7.65.0  | Form management              |
-| **Zod**              | 4.1.12  | Schema validation            |
-| **Lucide React**     | 0.548.0 | Icon library                 |
+| **React Hook Form**  | 7.85.0  | Form management              |
+| **Zod**              | 4.4.3   | Schema validation            |
+| **Lucide React**     | 0.577.0 | Icon library                 |
 | **next-themes**      | 0.4.6   | Dark mode support            |
 
 ### Backend ([/server](./server))
@@ -130,11 +130,11 @@ Kasinta is a full-stack dating application featuring real-time messaging, swipe-
 | **Express.js** | 5.x     | Web framework         |
 | **TypeScript** | 5.x     | Type safety           |
 | **PostgreSQL** | 12+     | Database              |
-| **Prisma**     | 7.1.0   | ORM                   |
-| **Socket.IO**  | 4.8.1   | WebSocket server      |
-| **JWT**        | 9.0.2   | Authentication tokens |
-| **bcryptjs**   | 2.4.3   | Password hashing      |
-| **Multer**     | 2.0.2   | File upload handling  |
+| **Prisma**     | 7.9.1   | ORM                   |
+| **Socket.IO**  | 4.8.3   | WebSocket server      |
+| **JWT**        | 9.0.3   | Authentication tokens |
+| **bcryptjs**   | 3.0.3   | Password hashing      |
+| **Multer**     | 2.2.0   | File upload handling  |
 | **AWS SDK**    | 3.x     | S3 profile photo storage |
 
 ### DevOps & Tools
@@ -180,12 +180,28 @@ This installs dependencies for both client and server packages.
 
 ```env
 DATABASE_URL="postgresql://username:password@localhost:5432/kasinta_db?schema=public"
+DATABASE_SSL=false
 JWT_SECRET="your-super-secret-jwt-key"
 PORT=4000
 CORS_ORIGIN=http://localhost:3000
 NODE_ENV=development
 MAX_FILE_SIZE=5242880
+
+# Photo uploads (required — the app errors on upload/delete routes without these)
+AWS_REGION=ap-southeast-1
+S3_BUCKET_NAME=kasinta-uploads
+AWS_ACCESS_KEY_ID=your-access-key-id
+AWS_SECRET_ACCESS_KEY=your-secret-access-key
+
+# Google OAuth login (optional)
+GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your-client-secret
+GOOGLE_CALLBACK_URL=http://localhost:4000/api/auth/google/callback
+FRONTEND_URL=http://localhost:3000
+BACKEND_URL=http://localhost:4000
 ```
+
+See [`server/.env.example`](./server/.env.example) for the authoritative list.
 
 **Client** (`client/.env.local`):
 
@@ -230,7 +246,9 @@ Navigate to [http://localhost:3000](http://localhost:3000)
 **Development (docker compose):**
 
 ```bash
-# Start all services (PostgreSQL + Server + Client)
+cd server
+
+# Start PostgreSQL + Server
 docker compose up -d
 
 # View logs
@@ -240,20 +258,21 @@ docker compose logs -f
 docker compose down
 ```
 
-**Production (AWS):**
+`server/docker-compose.yml` only defines the `postgres` and `server` services. The client isn't containerized for local dev — run it with `pnpm dev:client`.
 
-The application includes optimized Docker configurations for production deployment on AWS:
+**Production:**
+
+The client deploys to **Vercel** and the server deploys to **Fly.io** with a managed **Neon PostgreSQL** database (see [Architecture](#architecture)). The server's Docker image is used for the Fly.io deploy:
 
 - **Multi-stage builds** with Node.js 24 Alpine for minimal image size
 - **Automatic Prisma migrations** on container startup
 - **Non-root user** for security
 - **Health checks** for container monitoring
-- **Environment variable** configuration via EC2 env files or secrets
-- **S3 profile photo storage** for stateless backend containers
+- **Environment variables** configured via Fly.io secrets
 
-The server uses docker-compose with .env file for environment configuration. Database migrations are applied automatically when the container starts.
+Photo uploads use S3, but the production S3 bucket isn't currently provisioned — upload/delete routes error until `AWS_*`/`S3_BUCKET_NAME` are configured there.
 
-See `client/Dockerfile` and `server/Dockerfile` for production build configurations.
+See `client/Dockerfile` and `server/Dockerfile` for build configurations. An older AWS EC2 + RDS setup is documented in [Architecture](#architecture) as legacy.
 
 ## Project Structure
 
@@ -305,11 +324,11 @@ kasinta/
 │   │       └── database.ts # Prisma client
 │   ├── src/services/       # External services (S3 storage)
 │   ├── server.ts           # Application entry point
+│   ├── docker-compose.yml  # PostgreSQL + server services
 │   └── package.json
 │
 ├── package.json            # Root package.json (workspace)
 ├── pnpm-workspace.yaml     # Workspace configuration
-├── docker-compose.yml      # Docker services definition
 └── README.md              # This file
 ```
 
@@ -326,7 +345,7 @@ The server provides RESTful APIs and Socket.IO events:
 
 #### REST API Endpoints
 
-- **Authentication**: `/api/auth/*` - Register, login, logout, get user
+- **Authentication**: `/api/auth/*` - Register, login, logout, get user, Google OAuth (`/api/auth/google`, `/api/auth/google/callback`)
 - **User Profile**: `/api/users/*` - Profile management and photo upload
 - **Discovery**: `/api/discovery/*` - Browse and swipe on potential matches
 - **Matches**: `/api/matches/*` - View and manage matches
@@ -401,7 +420,30 @@ graph TB
     style Communication fill:#f0f0f0
 ```
 
-### AWS Production Architecture
+### Production Architecture (current)
+
+```mermaid
+flowchart TB
+    User["User Browser"]
+    Vercel["Vercel<br/>Next.js Client"]
+    Fly["Fly.io<br/>Express + Socket.IO container"]
+    Neon[("Neon<br/>Managed PostgreSQL")]
+    S3[("S3 Bucket<br/>profile photos<br/>not yet provisioned")]
+
+    User --> Vercel
+    Vercel -->|REST API + Socket.IO| Fly
+    Fly -->|Prisma| Neon
+    Fly -.->|profile upload/read/delete<br/>currently errors| S3
+```
+
+- **Client** deploys to **Vercel** via its native Git integration.
+- **Server** deploys to **Fly.io** as a Docker container (see `.github/workflows/deploy-server.yml`).
+- **Neon** provides managed PostgreSQL for the server.
+- **S3** is the intended profile-photo store, but the production bucket/credentials aren't configured yet — upload/delete routes error until `AWS_*`/`S3_BUCKET_NAME` secrets are set on Fly.io.
+
+### AWS Architecture (legacy)
+
+The application was previously deployed on AWS EC2 + RDS. This has been superseded by the Fly.io + Neon setup above, but the Docker image remains AWS-compatible if needed.
 
 ```mermaid
 flowchart TB
@@ -431,19 +473,13 @@ flowchart TB
     IAM -. allows .-> S3
 ```
 
-**Production DNS:**
+**AWS services used (legacy):**
 
-- `kasinta.arnplsrz.com` points to Vercel.
-- `api.kasinta.arnplsrz.com` points to the EC2 Elastic IP.
-- Route 53 is optional. Any DNS provider can create the API `A` record.
-
-**AWS services used:**
-
-- **EC2** runs the backend Docker container.
-- **Nginx** terminates HTTP/HTTPS and proxies REST + Socket.IO traffic to `127.0.0.1:4000`.
-- **RDS PostgreSQL** stores application data.
-- **S3** stores uploaded profile photos under `profiles/*`.
-- **IAM instance role** gives the EC2 backend S3 access without static AWS keys in production.
+- **EC2** ran the backend Docker container.
+- **Nginx** terminated HTTP/HTTPS and proxied REST + Socket.IO traffic to `127.0.0.1:4000`.
+- **RDS PostgreSQL** stored application data.
+- **S3** stored uploaded profile photos under `profiles/*`.
+- **IAM instance role** gave the EC2 backend S3 access without static AWS keys.
 
 ### Data Flow Examples
 
@@ -670,9 +706,8 @@ pnpm prisma:seed
 - Configure CORS_ORIGIN to production domain
 - Enable HTTPS
 - Use Node.js 20 or higher runtime
-- Use managed PostgreSQL, such as AWS RDS
-- Store uploads in S3 instead of the EC2 filesystem
-- Use an EC2 IAM role for S3 access in production
+- Use managed PostgreSQL, such as Neon
+- Store uploads in S3 rather than the container filesystem
 - Set up environment variables in deployment platform
 - Configure push notification VAPID keys for web push
 - Set up GitHub Actions workflows for automated deployment

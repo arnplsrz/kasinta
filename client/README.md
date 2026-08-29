@@ -42,7 +42,7 @@ client/
 │   ├── globals.css                   # Global styles & CSS variables
 │   ├── login/page.tsx                # Login page
 │   ├── register/page.tsx             # Registration page
-│   └── profile/page.tsx              # Profile management
+│   └── profile/complete/page.tsx     # One-time profile setup (post-signup)
 ├── components/
 │   ├── layout/
 │   │   ├── AppSidebar.tsx            # Main sidebar navigation
@@ -51,6 +51,7 @@ client/
 │   │   ├── FilterPopover.tsx         # Discovery filters
 │   │   ├── Hero.tsx                  # Landing page hero
 │   │   ├── Header.tsx                # Header component
+│   │   ├── ProfileDialog.tsx         # Profile edit modal (photo, bio, preferences)
 │   │   └── Footer.tsx                # Footer component
 │   ├── ui/                           # shadcn/ui components
 │   │   ├── button.tsx
@@ -77,7 +78,6 @@ client/
 ├── .env.local                        # Environment variables (create this)
 ├── .env.example                      # Environment template
 ├── Dockerfile                        # Production Docker build
-├── tailwind.config.ts                # Tailwind configuration
 ├── components.json                   # shadcn/ui config
 └── package.json
 ```
@@ -86,7 +86,7 @@ client/
 
 ### Prerequisites
 
-1. Backend server running on http://localhost:5000
+1. Backend server running on http://localhost:4000
 2. PostgreSQL database configured and migrated
 3. Environment variables set in both client and server
 
@@ -260,16 +260,22 @@ The main application page adapts based on authentication status:
 - Error handling
 - Auto-redirect to profile setup on success
 
-#### Profile Page ([app/profile/page.tsx](app/profile/page.tsx))
+#### Profile Setup Page ([app/profile/complete/page.tsx](app/profile/complete/page.tsx))
 
-- Profile photo upload with preview
-- Editable profile fields (name, age, gender, bio)
-- Matching preferences:
-  - Interested in (men/women/everyone)
-  - Age range (min/max)
-  - Max distance (km)
-- Success/error message display
-- Logout functionality
+One-time onboarding step shown right after registration:
+
+- Age, gender, and "interested in" selection
+- Zod-validated form (age 18-100)
+- Redirects to the home page on success
+
+### Profile Editing
+
+Ongoing profile edits happen in a modal, not a page: [ProfileDialog](components/layout/ProfileDialog.tsx), opened from [AppSidebar](components/layout/AppSidebar.tsx).
+
+- Profile photo upload/delete with preview
+- Bio (max 500 characters)
+- Matching preferences: age range (min/max), max distance
+- Success/error message display via toast
 
 ## Core Components
 
