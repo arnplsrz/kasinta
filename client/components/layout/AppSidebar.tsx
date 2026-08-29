@@ -53,6 +53,33 @@ export function AppSidebar({
   const selectedMatchIdRef = useRef<string | null>(null);
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
 
+  const getOtherUser = (match: Match) => {
+    if (!user) return null;
+    return match.user1Id === user.id ? match.user2 : match.user1;
+  };
+
+  const loadMatches = async () => {
+    setLoading(true);
+    try {
+      const data = await matchAPI.getMatches();
+      setMatches(data);
+
+      // Initialize online users from match data
+      const initialOnlineUsers = new Set<string>();
+      data.forEach((match) => {
+        const otherUser = getOtherUser(match);
+        if (otherUser?.isOnline) {
+          initialOnlineUsers.add(otherUser.id);
+        }
+      });
+      setOnlineUsers(initialOnlineUsers);
+    } catch (error) {
+      console.error("Failed to load matches:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Keep ref in sync with prop
   useEffect(() => {
     selectedMatchIdRef.current = selectedMatchId || null;
@@ -165,33 +192,6 @@ export function AppSidebar({
       })
     );
   }, [selectedMatchId]);
-
-  const loadMatches = async () => {
-    setLoading(true);
-    try {
-      const data = await matchAPI.getMatches();
-      setMatches(data);
-
-      // Initialize online users from match data
-      const initialOnlineUsers = new Set<string>();
-      data.forEach((match) => {
-        const otherUser = getOtherUser(match);
-        if (otherUser?.isOnline) {
-          initialOnlineUsers.add(otherUser.id);
-        }
-      });
-      setOnlineUsers(initialOnlineUsers);
-    } catch (error) {
-      console.error("Failed to load matches:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getOtherUser = (match: Match) => {
-    if (!user) return null;
-    return match.user1Id === user.id ? match.user2 : match.user1;
-  };
 
   return (
     <Sidebar>

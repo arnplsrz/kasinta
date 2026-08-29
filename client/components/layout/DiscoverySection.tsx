@@ -40,17 +40,6 @@ export default function DiscoverySection({
   const [swiping, setSwiping] = useState(false);
   const [newMatch, setNewMatch] = useState<Match | null>(null);
 
-  useEffect(() => {
-    loadPotentialMatches();
-  }, [user]);
-
-  useEffect(() => {
-    const cleanup = onNewMatch((match) => {
-      setNewMatch(match);
-    });
-    return cleanup;
-  }, [onNewMatch]);
-
   const loadPotentialMatches = async () => {
     setLoading(true);
     try {
@@ -67,6 +56,17 @@ export default function DiscoverySection({
       setTimeout(() => setLoading(false), 250);
     }
   };
+
+  useEffect(() => {
+    loadPotentialMatches();
+  }, [user]);
+
+  useEffect(() => {
+    const cleanup = onNewMatch((match) => {
+      setNewMatch(match);
+    });
+    return cleanup;
+  }, [onNewMatch]);
 
   const handleSwipe = async (action: "like" | "dislike") => {
     if (swiping || currentIndex >= potentialMatches.length) return;
