@@ -21,10 +21,10 @@ A full-featured dating app backend built with Express.js, Prisma, PostgreSQL, an
 
 - **Runtime**: Node.js 20+ with TypeScript
 - **Framework**: Express.js 5.x
-- **Database**: PostgreSQL with Prisma ORM 7.1.0
+- **Database**: PostgreSQL with Prisma ORM 7.9.1
 - **Real-time**: Socket.IO
 - **Authentication**: JWT (jsonwebtoken) with bcryptjs
-- **File Upload**: Multer 2.0.2
+- **File Upload**: Multer 2.2.0
 - **Object Storage**: AWS S3 via AWS SDK v3
 - **Package Manager**: pnpm
 
@@ -85,7 +85,7 @@ pnpm install
 Copy the example environment file and configure:
 
 ```bash
-cp .env.example .env.local
+cp .env.example .env
 ```
 
 Update `.env` with your configuration:
@@ -121,7 +121,7 @@ The server will start on `http://localhost:4000`
 | --------------- | ---------------------------------------- | -------------------------- |
 | `DATABASE_URL`  | PostgreSQL connection string             | -                          |
 | `JWT_SECRET`    | Secret key for JWT signing               | -                          |
-| `PORT`          | Server port                              | `5000`                     |
+| `PORT`          | Server port                              | none — required, no fallback |
 | `NODE_ENV`      | Environment (development/production)     | `development`              |
 | `CORS_ORIGIN`   | Frontend URL for CORS                    | `http://localhost:3000`    |
 | `BACKEND_URL`   | Backend URL for push notification assets | `http://localhost:${PORT}` |
@@ -235,7 +235,12 @@ The `notification` event includes:
 ### Fly.io + Neon + S3 (current)
 
 Compute runs on **Fly.io**, PostgreSQL on **Neon** (free serverless tier), and
-profile photos stay on the existing **AWS S3** bucket.
+profile photos are intended to stay on **AWS S3**.
+
+> **Known issue**: the production S3 bucket/credentials aren't currently set as
+> Fly secrets, so photo upload/delete routes error in production until
+> `AWS_REGION`, `S3_BUCKET_NAME`, `AWS_ACCESS_KEY_ID`, and
+> `AWS_SECRET_ACCESS_KEY` are configured (see step 3 below).
 
 ```mermaid
 flowchart TB
