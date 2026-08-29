@@ -85,6 +85,7 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
       console.error("Socket error:", error);
     });
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- storing external socket instance, not derived state
     setSocket(newSocket);
 
     // Disconnect and reset when the user changes or the provider unmounts.

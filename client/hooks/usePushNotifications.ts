@@ -23,6 +23,7 @@ export const usePushNotifications = () => {
   // Check if notifications are supported
   useEffect(() => {
     const supported = "Notification" in window && "serviceWorker" in navigator;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- feature detection needs window, unavailable during SSR
     setIsSupported(supported);
 
     if (supported) {
