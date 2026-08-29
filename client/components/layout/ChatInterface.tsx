@@ -63,6 +63,38 @@ export default function ChatInterface({
   );
   const [otherUserOnline, setOtherUserOnline] = useState(false);
 
+  const loadMatchAndMessages = async () => {
+    setLoading(true);
+    try {
+      const matchesData = await matchAPI.getMatches();
+      const currentMatch = matchesData.find((m) => m.id === matchId);
+      if (currentMatch) {
+        setMatch(currentMatch);
+        const otherUser =
+          currentMatch.user1Id === user?.id
+            ? currentMatch.user2
+            : currentMatch.user1;
+
+        // Initialize online status
+        if (otherUser) {
+          setOtherUserOnline(otherUser.isOnline || false);
+          const messagesData = await chatAPI.getMessages(otherUser.id);
+          setMessages(messagesData);
+        }
+      }
+    } catch (error) {
+      // console.error("Failed to load match/messages:", error);
+    } finally {
+      setTimeout(() => setLoading(false), 250);
+    }
+  };
+
+  const scrollToBottom = () => {
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = 0;
+    }
+  };
+
   useEffect(() => {
     loadMatchAndMessages();
   }, [matchId]);
@@ -146,38 +178,6 @@ export default function ChatInterface({
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
-
-  const loadMatchAndMessages = async () => {
-    setLoading(true);
-    try {
-      const matchesData = await matchAPI.getMatches();
-      const currentMatch = matchesData.find((m) => m.id === matchId);
-      if (currentMatch) {
-        setMatch(currentMatch);
-        const otherUser =
-          currentMatch.user1Id === user?.id
-            ? currentMatch.user2
-            : currentMatch.user1;
-
-        // Initialize online status
-        if (otherUser) {
-          setOtherUserOnline(otherUser.isOnline || false);
-          const messagesData = await chatAPI.getMessages(otherUser.id);
-          setMessages(messagesData);
-        }
-      }
-    } catch (error) {
-      // console.error("Failed to load match/messages:", error);
-    } finally {
-      setTimeout(() => setLoading(false), 250);
-    }
-  };
-
-  const scrollToBottom = () => {
-    if (messagesContainerRef.current) {
-      messagesContainerRef.current.scrollTop = 0;
-    }
-  };
 
   const handleTyping = () => {
     if (!match || !connected) return;

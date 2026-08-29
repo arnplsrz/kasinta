@@ -23,6 +23,7 @@ export default function Header() {
 
   useEffect(() => {
     if (user) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- async fetch, setState happens in its own callback
       loadUnreadCount();
     }
   }, [user, loadUnreadCount]);
