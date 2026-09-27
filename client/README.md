@@ -131,7 +131,7 @@ NEXT_PUBLIC_MAX_FILE_SIZE=5242880
 This configures the backend API endpoint. In production, update to your deployed backend URL (e.g., https://kasinta-backend.fly.dev).
 
 **Image Configuration**:
-- Images are served unoptimized (`unoptimized: true`) to avoid Docker optimization issues
+- Images are served optimized
 - Remote patterns configured for localhost:4000 and production backend
 - Profile photos loaded from backend `/uploads` endpoint with CORS support
 
