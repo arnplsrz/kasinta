@@ -350,9 +350,11 @@ export default function Hero() {
                           {/* Image */}
                           <div className="shrink-0 mx-auto md:mx-0">
                             <div className="w-16 h-16 md:w-16 md:h-16 rounded-base border-2 border-border bg-chart-1 overflow-hidden">
-                              <img
+                              <Image
                                 src={testimonial.image}
                                 alt={testimonial.names}
+                                width={64}
+                                height={64}
                                 className="w-full h-full object-cover"
                               />
                             </div>

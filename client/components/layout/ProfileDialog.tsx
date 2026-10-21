@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 import { useAuth } from "@/contexts/AuthContext";
 import { userAPI, API_BASE_URL } from "@/lib/api";
 import { Camera, Save, User, Trash2 } from "lucide-react";
@@ -201,9 +202,11 @@ export function ProfileDialog({ open, onOpenChange }: ProfileDialogProps) {
                 <div className="relative">
                   <div className="w-32 h-32 rounded-base overflow-hidden bg-main/10 flex items-center justify-center border-2 border-border shadow-shadow">
                     {user.profilePhoto ? (
-                      <img
+                      <Image
                         src={`${API_BASE_URL}${user.profilePhoto}`}
                         alt="Profile"
+                        width={128}
+                        height={128}
                         className="w-full h-full object-cover"
                       />
                     ) : (

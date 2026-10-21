@@ -3,6 +3,7 @@ import { discoveryAPI, API_BASE_URL } from "@/lib/api";
 import { PotentialMatch, Match } from "@/lib/types";
 import { User, X, RotateCcw, Heart, SlidersHorizontal } from "lucide-react";
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import {
@@ -195,10 +196,12 @@ export default function DiscoverySection({
                 }}
               >
                 {currentMatch.profilePhoto ? (
-                  <img
+                  <Image
                     src={`${API_BASE_URL}${currentMatch.profilePhoto}`}
                     alt={currentMatch.name}
-                    className="w-full h-full object-contain sm:object-contain sm:mx-2 sm:w-auto sm:h-auto"
+                    fill
+                    sizes="(min-width: 640px) 40vw, 100vw"
+                    className="object-contain sm:mx-2"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">

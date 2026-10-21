@@ -363,7 +363,7 @@ export default function ChatInterface({
               {/* Profile Photo */}
               <div className="flex justify-center">
                 {otherUser.profilePhoto ? (
-                  <img
+                  <Image
                     src={`${API_BASE_URL}${otherUser.profilePhoto}`}
                     alt={otherUser.name}
                     className="w-48 h-48 object-cover rounded-base border-2 border-border shadow-shadow"
