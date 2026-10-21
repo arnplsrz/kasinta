@@ -3,6 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   output: process.env.VERCEL ? undefined : "standalone",
   images: {
+    dangerouslyAllowLocalIP: process.env.NODE_ENV !== "production",
     remotePatterns: [
       {
         protocol: "http",
@@ -14,7 +15,7 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "api.kasinta.arnplsrz.com",
         pathname: "/uploads/**",
-      }
+      },
     ],
   },
 };
